@@ -40,11 +40,12 @@ logging.basicConfig(
 
 def process_event(event):
     status_ui = aiy.voicehat.get_status_ui()
+    print(event)
+    status_ui.set_trigger_sound_wave('~/trigger_sound.wav')
     if event.type == EventType.ON_START_FINISHED:
         status_ui.status('ready')
         if sys.stdout.isatty():
             print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
-
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')
 
