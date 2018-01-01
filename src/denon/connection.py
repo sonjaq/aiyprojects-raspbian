@@ -39,9 +39,9 @@ class DenonConnection(object):
 
     def power_commands(self):
         found = None
-        if "receiver" and "off" in self._words:
+        if "receiver" in self._words and ("off" in self._words or "app" in self._words):
             found = b"ZMOFF"
-        elif "receiver" and "on" in self._words:
+        elif "receiver" in self._words and "on" in self._words:
             found = b"ZMON"
         if found:
             return found + b'\r'
@@ -71,7 +71,7 @@ class DenonConnection(object):
             processing = b"MSDOLBY ATMOS"
         elif "dolby" in self._words or "digital" in self._words:
             processing = b"MSDOLBY DIGITAL"
-        elif "dps" in self._words or "dts" in self._words:
+        elif "surround" in self._words or "neural" in self._words or "dps" in self._words or "dts" in self._words:
             processing = b"MSDTS SURROUND"
 
         mode = None
