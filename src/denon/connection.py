@@ -27,6 +27,9 @@ class DenonConnection(object):
         print(power, source, audio, volume)
         if power is not None:
             self._queue.append(power)
+            if power == b"ZMOFF\r":
+                return
+
         if source is not None:
             self._queue.append(source)
         if audio is not None:
@@ -45,7 +48,7 @@ class DenonConnection(object):
 
     def input_commands(self):
         found = None
-        if "xbox" or "games" in self._words:
+        if "xbox" in self or "games" in self._words:
             found = b"SIGAME"
         elif "apple" or "tv" or "listen" in self._words:
             found = b"SIMPLAY"
@@ -61,15 +64,15 @@ class DenonConnection(object):
         processing = None
         if "stereo" in self._words:
             processing = b"MSSTEREO"
-        elif "atmos" or "atmos" or "mose" or "atmose" in self._words:
+        elif "atmos" in self._words or "atmos" in self._words or "mose" in self._words or "atmose" in self._words:
             processing = b"MSDOLBY ATMOS"
-        elif "dolby" or "digital" in self._words:
+        elif "dolby" in self._words or "digital" in self._words:
             processing = b"MSDOLBY DIGITAL"
-        elif "dps" or "dts" in self._words:
+        elif "dps" in self._words or "dts" in self._words:
             processing = b"MSDTS SURROUND"
 
         mode = None
-        if "music" or "listen" in self._words:
+        if "music" in self._words or "listen" in self._words:
             mode = b"MSMUSIC"
         elif "game" in self._words:
             mode = b"MSGAME"
@@ -89,9 +92,9 @@ class DenonConnection(object):
 
 
     def volume_commands(self):
-        if "volume" and "up" in self._words:
+        if "volume" in self._words and "up" in self._words:
             return b"MVUP" + b'\r'
-        elif "volume" and "down" in self._words:
+        elif "volume" in self._words and "down" in self._words:
             return b"MVDOWN" + b'\r'
 
         if "quiet" in self._words:
