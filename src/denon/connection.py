@@ -48,7 +48,7 @@ class DenonConnection(object):
 
     def input_commands(self):
         found = None
-        if "xbox" in self or "games" in self._words:
+        if "xbox" in self._words or "games" in self._words:
             found = b"SIGAME"
         elif "apple" or "tv" or "listen" in self._words:
             found = b"SIMPLAY"
