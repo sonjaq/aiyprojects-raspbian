@@ -44,7 +44,9 @@ class DenonConnection(object):
             found = b"ZMOFF"
         elif "receiver" and "on" in self._words:
             found = b"ZMON"
-        return found + b'\r'
+        if found:
+            return found + b'\r'
+        return None
 
     def input_commands(self):
         found = None
@@ -58,7 +60,9 @@ class DenonConnection(object):
             found = b"SISAT/CABLE"
         elif "bluetooth" in self._words:
             found = b"SIBT"
-        return found +  b'\r'
+        if found:
+            return found +  b'\r'
+        return None
 
     def audio_commands(self):
         processing = None
