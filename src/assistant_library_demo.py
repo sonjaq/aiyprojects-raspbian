@@ -74,9 +74,9 @@ def process_event(assistant, event, denon):
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text'].lower()
         if 'denon' or 'xbox' or 'apple' or 'tv' or 'music' or 'movie' in text:
-            print("text found")
-            assistant.stop_conversation()
+            print(text)
             denon.handle_command_queue(denon.process_command_string(text))
+            assistant.stop_conversation()
         elif text == 'power off':
             assistant.stop_conversation()
             power_off_pi()

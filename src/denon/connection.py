@@ -57,6 +57,7 @@ class DenonConnection(object):
         elif text.find('mute') == 1:
             command_queue.append("MUON")
 
+        print(command_queue)
         return command_queue
 
 
