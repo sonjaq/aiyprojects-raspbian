@@ -9,7 +9,7 @@ author: Sonja Leaf <avleaf@gmail.com>
 """
 class DenonConnection(object):
     """POSTS commands to Denon API server"""
-    def __init__(self, api_host, port="23", trigger_map):
+    def __init__(self, api_host, port, trigger_map):
         self._api_host = api_host
         self._port = port
         self._connection = None
