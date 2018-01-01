@@ -200,7 +200,7 @@ class TriggerMap(object):
         elif self.bluetooth_triggered(words, text):
             action = action + self.bluetooth_action()
         elif self.cable_triggered(words, text):
-            action = action + self.cable_action
+            action = action + self.cable_action()
 
         if self.audio_mode_triggered(words, text):
             mode = ""
