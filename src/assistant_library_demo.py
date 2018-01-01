@@ -70,9 +70,6 @@ def process_event(assistant, event, denon):
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')
 
-    elif event.type == EventType.ON_END_OF_UTTERANCE:
-        status_ui.status('thinking')
-
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text'].lower()
         if text == 'power off':
@@ -90,7 +87,9 @@ def process_event(assistant, event, denon):
             assistant.stop_conversation()
             denon.handle_command_queue(denon.process_command(text))
 
-        status_ui.status('ready')
+    elif event.type == EventType.ON_END_OF_UTTERANCE:
+        status_ui.status('thinking')
+
 
     elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
         status_ui.status('ready')
