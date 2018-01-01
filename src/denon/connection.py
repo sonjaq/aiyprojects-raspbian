@@ -13,7 +13,7 @@ class DenonConnection(object):
         command_queue = []
         if text.find("on") == 1:
             command_queue.append("ZMON")
-        if text.find("power off") == 1:
+        if text.find("receiver off") == 1:
             command_queue.append("ZMOFF")
             return command_queue
 
@@ -46,6 +46,13 @@ class DenonConnection(object):
             elif text.find("down") == 1:
                 command_queue.append("MVDOWN")
 
+        if text.find("quiet") == 1:
+            command_queue.append("MV20")
+        elif text.find("normal") == 1:
+            command_queue.append("MV42")
+        elif text.find("loud") == 1:
+            command_queue.append("MV60")
+
         if text.find("unmute") == 1:
             command_queue.append("MUOFF")
         elif text.find('mute') == 1:
@@ -60,8 +67,7 @@ class DenonConnection(object):
             time.sleep(1)
 
     def send(self, command):
-        if not self.valid_command(command):
-            return False
+
         payload = {"action": command}
 
         response = requests.post(self._endpoint, payload)
