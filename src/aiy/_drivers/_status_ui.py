@@ -17,6 +17,9 @@
 import logging
 import os.path
 
+import glob
+import random
+
 import aiy.audio
 import aiy.voicehat
 
@@ -32,6 +35,7 @@ class _StatusUi(object):
 
     def __init__(self):
         self._trigger_sound_wave = None
+        self._wavs = None
         self._state_map = {
             "starting": aiy.voicehat.LED.PULSE_QUICK,
             "ready": aiy.voicehat.LED.BEACON_DARK,
@@ -42,6 +46,16 @@ class _StatusUi(object):
             "error": aiy.voicehat.LED.BLINK_3,
         }
         aiy.voicehat.get_led().set_state(aiy.voicehat.LED.OFF)
+
+    def get_wav(self):
+        if self._wavs == None:
+            self._wavs = glob.glob("/home/pi/sounds")
+
+        if len(self._wavs) == 0:
+            return None
+
+        wav = random.choice(self._wavs)
+        return wav
 
     def set_trigger_sound_wave(self, trigger_sound_wave):
         """Set the trigger sound.
@@ -75,5 +89,8 @@ class _StatusUi(object):
             return False
         aiy.voicehat.get_led().set_state(self._state_map[status])
         if status == 'listening' and self._trigger_sound_wave:
-            aiy.audio.play_wave(self._trigger_sound_wave)
+            wav = self.get_wav()
+            if wav is not None:
+                aiy.audio.play_wave(wav)
+
         return True
