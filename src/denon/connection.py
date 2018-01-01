@@ -5,7 +5,8 @@ class DenonConnection(object):
     """POSTS commands to Denon API server"""
     def __init__(self, api_host, port="8000"):
         self._api_host = api_host
-        self._endpoint = "http://%s:%s/api/" % api_host, port
+        self._port = port
+        self._endpoint = "http://{0._api_host}:{0._port}/api/".format(self)
 
 
     def process_command_string(self, text):
