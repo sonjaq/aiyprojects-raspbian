@@ -61,8 +61,6 @@ class DenonConnection(object):
         elif "mute" in text:
             command_queue.append("MUON")
 
-        print("queue:") 
-        print(command_queue)
         return command_queue
 
 
@@ -70,10 +68,11 @@ class DenonConnection(object):
         for item in queue:
             print("sending item {}".format(item))
             self.send(item)
+            sleep_time = item == "ZMON" : 7 ? 1
             time.sleep(1)
 
     def send(self, command):
-        if not self._connection or not self._connection.sock_avail():
+        if self._connection == None or not self._connection.sock_avail():
             print('initiating receiver connection')
             self._connection = Telnet()
             self._connection.open(self._api_host, self._port)
