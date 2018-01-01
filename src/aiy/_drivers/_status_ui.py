@@ -88,9 +88,10 @@ class _StatusUi(object):
                            status, ",".join(self._state_map.keys()))
             return False
         aiy.voicehat.get_led().set_state(self._state_map[status])
-        if status == 'listening' and self._trigger_sound_wave:
+        if status == 'listening' or status == "ready":
             wav = self.get_wav()
             if wav is not None:
                 aiy.audio.play_wave(wav)
+
 
         return True

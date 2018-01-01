@@ -41,7 +41,7 @@ logging.basicConfig(
 def process_event(event):
     status_ui = aiy.voicehat.get_status_ui()
     print(event)
-    status_ui.set_trigger_sound_wave('~/trigger_sound.wav')
+    # status_ui.set_trigger_sound_wave('~/trigger_sound.wav')
     if event.type == EventType.ON_START_FINISHED:
         status_ui.status('ready')
         if sys.stdout.isatty():
