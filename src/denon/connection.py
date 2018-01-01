@@ -62,6 +62,7 @@ class DenonConnection(object):
 
     def handle_command_queue(self, queue):
         for item in queue:
+            print("sending item {}".format(item))
             self.send(item)
             time.sleep(1)
 
