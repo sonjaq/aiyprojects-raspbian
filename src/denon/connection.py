@@ -28,12 +28,12 @@ class DenonConnection(object):
             elif "cable" in text:
                 command_queue.append("SISAT/CABLE")
 
-        if "dolby" in text:
-            command_queue.append("MSDOLBY_DIGITAL")
-        elif "dts" or "surround" or "neural" in text:
-            command_queue.append("MSDTS SURROUND")
-        elif "stereo" in text:
+        if "stereo" in text:
             command_queue.append("MSSTEREO")
+        elif "dolby" in text:
+            command_queue.append("MSDOLBY DIGITAL")
+        elif "dts" or "surround" or "neural x" in text:
+            command_queue.append("MSDTS SURROUND")
 
         if "music" in text:
             command_queue.append("MSMUSIC")
