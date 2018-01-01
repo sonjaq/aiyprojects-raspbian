@@ -1,92 +1,102 @@
 import time
 from telnetlib import Telnet
-
+"""
+Connects to a Denon AVR-X1400H receiver via telnet and sends commands that line
+up with with the Denon AVR Spec
+"""
 class DenonConnection(object):
     """POSTS commands to Denon API server"""
-    def __init__(self, api_host, port="8000"):
+    def __init__(self, api_host, port="23"):
         self._api_host = api_host
         self._port = port
         self._connection = None
+        self._words = None
+        self._queue = None
 
-    def process_command_string(self, text):
-        print(text)
-        command_queue = []
-        if "receiver off" in text:
-            command_queue.append("ZMOFF")
-            return command_queue
-        # make sure receiver on
-        
-        if "receiver on" in text:
-            command_queue.append("ZMON")
+    def process_command_string(self, words):
+        self._words = words
+        self._queue = []
+        self.power_commands()
+        self.input_commands()
+        self.audio_commands()
 
-        if "switch" or "to" or "use" or "play" in text:
-            if "xbox" in text:
-                command_queue.append("SIGAME")
-            elif "apple" in text:
-                command_queue.append("SIMPLAY")
-            elif "dvd" in text:
-                command_queue.append("SIDVD")
-            elif "cable" in text:
-                command_queue.append("SISAT/CABLE")
 
-        if "stereo" in text:
-            command_queue.append("MSSTEREO")
-        elif "atmos" or "at mo" in text:
-            command_queue.append("MSDOLBY ATMOS")
-        elif "dolby" or "digital" in text:
-            command_queue.append("MSDOLBY DIGITAL")
-        elif "neural x" or "neural app" or "dps" or "dts" in text:
-            command_queue.append("MSDTS SURROUND")
-        else:
-            command_queue
-        
-        if "music" or "listen" in text:
-            command_queue.append("MSMUSIC")
-        elif "game" in text:
-            command_queue.append("MSGAME")
-        elif "movie" in text:
-            command_queue.append("MSMOVIE")
-        elif "direct" in text:
-            command_queue.append("MSDIRECT")
+    def power_commands(self):
+        if "receiver" and "off" in self._words:
+            self._queue.append("ZMOFF")
+        elif "receiver" and "on" in self._words:
+            self._queue.append("ZMON")
 
-        if "volume" in text:
-            if "up" in text:
-                command_queue.append("MVUP")
-            elif "down" in text:
-                command_queue.append("MVDOWN")
 
-        if "quiet" in text:
-            command_queue.append("MV20")
-        elif "normal" in text:
-            command_queue.append("MV42")
-        elif "loud" in text:
-            command_queue.append("MV60")
+    def input_commands(self):
+        if "xbox" or "games" in self._words:
+            self._queue.append("SIGAME")
+        elif "apple" or "tv" or "listen" in self._words:
+            self._queue.append("SIMPLAY")
+        elif "dvd" in self._words:
+            self._queue.append("SIDVD")
+        elif "cable" in self._words:
+            self._queue.append("SISAT/CABLE")
+        elif "bluetooth" in self._words
 
-        if "unmute" in text:
-            command_queue.append("MUOFF")
-        elif "mute" in text:
-            command_queue.append("MUON")
+    def audio_commands(self):
+        if "stereo" in self._words:
+            self._queue.append("MSSTEREO")
+        elif "atmos" or "atmos" or "mose" or "atmose" in self._words:
+            self._queue.append("MSDOLBY ATMOS")
+        elif "dolby" or "digital" in self._words:
+            self._queue.append("MSDOLBY DIGITAL")
+        elif "neural" or "dps" or "dts" in self._words:
+            self._queue.append("MSDTS SURROUND")
 
-        return command_queue
+        if "music" or "listen" in self._words:
+            self._queue.append("MSMUSIC")
+        elif "game" in self._words:
+            self._queue.append("MSGAME")
+        elif "movie" in self._words:
+            self._queue.append("MSMOVIE")
+        elif "direct" in self._words:
+            self._queue.append("MSDIRECT")
 
-    def telnet_options(self, socket, command, option):
-        from ptpython.repl import embed
 
-        return socket
+    def volume_commands(self):
+        if "volume" and "up" in self._words:
+            self._queue.append("MVUP")
+            return
+        elif "volume" and "down" in self._words:
+            self._queue.append("MVDOWN")
+            return
 
-    def handle_command_queue(self, queue):
-        print(queue)
-        for item in queue:
-            self.send(item, self.telnet_options)
+        if "quiet" in self._words:
+            self._queue.append("MV20")
+            return
+        elif "normal" in self._words:
+            self._queue.append("MV42")
+            return
+        elif "loud" in self._words:
+            self._queue.append("MV60")
+            return
+
+        if "unmute" in self._words:
+            self._queue.append("MUOFF")
+        elif "mute" in self._words:
+            self._queue.append("MUON")
+
+
+    def handle_command_queue(self):
+        for item in self._queue:
+            self.send(item)
             print(item)
             sleep_time = 1
             time.sleep(sleep_time)
 
-    def send(self, command, callback):
+    def connector(self):
         if self._connection == None or not self._connection.sock_avail():
             self._connection = Telnet()
             self._connection.open(self._api_host, self._port)
-            self._connection.set_option_negotiation_callback(callback)
             time.sleep(4)
+        return self._connection
 
-        self._connection.write(command.encode('ascii') + b'\r')
+
+    def send(self, command):
+        self.connector.write(command.encode('ascii') + b'\r')
