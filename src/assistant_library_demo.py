@@ -62,7 +62,6 @@ def say_ip(status_ui):
 
 def process_event(assistant, event, denon):
     status_ui = aiy.voicehat.get_status_ui()
-    print(event)
     # status_ui.set_trigger_sound_wave('~/trigger_sound.wav')
     if event.type == EventType.ON_START_FINISHED:
         status_ui.status('ready')
