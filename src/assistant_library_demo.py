@@ -25,6 +25,7 @@ It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 """
 
 import logging
+import subprocess
 import sys
 
 import aiy.audio
@@ -72,7 +73,7 @@ def process_event(assistant, event, denon):
 
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text'].lower()
-        if text.find('denon') == 1:
+        if 'denon' or 'xbox' in text:
             print("text found")
             assistant.stop_conversation()
             denon.handle_command_queue(denon.process_command(text))
@@ -85,7 +86,7 @@ def process_event(assistant, event, denon):
         elif text == 'ip address':
             assistant.stop_conversation()
             say_ip()
-        # elif (text.find("xbox") == 1) or (text.find("apple") == 1) or (text.find("audio") == 1) or (text.find("video") == 1) or (text.find("music") == 1) or (text.find("stereo") == 1) or (text.find("dolby") == 1) or (text.find("dts") == 1) or (text.find("volume") == 1) or (text.find("tv") == 1):
+        # elif "xbox" or "apple" or "audio" or "video" or "music" or "stereo" or "dolby" or "dts" or "volume" or "tv":
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
