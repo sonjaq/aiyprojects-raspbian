@@ -68,7 +68,7 @@ class DenonConnection(object):
         for item in queue:
             print("sending item {}".format(item))
             self.send(item)
-            sleep_time = item == "ZMON" : 7 ? 1
+            sleep_time = 7 if item == "ZMON" else 1
             time.sleep(1)
 
     def send(self, command):
