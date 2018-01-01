@@ -27,8 +27,11 @@ It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 import logging
 import sys
 
+import aiy.audio
 import aiy.assistant.auth_helpers
 import aiy.voicehat
+
+from denon.connection import DenonConnection
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 
@@ -38,7 +41,25 @@ logging.basicConfig(
 )
 
 
-def process_event(event):
+def power_off_pi(status_ui):
+    status_ui.play_random_bb8_sound()
+    aiy.audio.say('Good bye!')
+    subprocess.call('sudo shutdown now', shell=True)
+
+
+def reboot_pi(status_ui):
+    status_ui.play_random_bb8_sound()
+    aiy.audio.say('See you in a bit!')
+    subprocess.call('sudo reboot', shell=True)
+
+
+def say_ip(status_ui):
+    ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
+    status_ui.play_random_bb8_sound()
+    aiy.audio.say('%s' % ip_address.decode('utf-8'))
+
+
+def process_event(assistant, event, denon):
     status_ui = aiy.voicehat.get_status_ui()
     print(event)
     # status_ui.set_trigger_sound_wave('~/trigger_sound.wav')
@@ -52,6 +73,23 @@ def process_event(event):
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
 
+    elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
+        text = event.args['text'].lower()
+        if text == 'power off':
+            assistant.stop_conversation()
+            power_off_pi()
+        elif text == 'reboot':
+            assistant.stop_conversation()
+            reboot_pi()
+        elif text == 'ip address':
+            assistant.stop_conversation()
+            say_ip()
+        elif text.match 
+         text.find("xbox") or text.find("apple") or text.find("audio") or text.find("video") or text.find("music") or text.find("stereo") or text.find("dolby") or text.find("dts") or text.find("volume") or text.find("tv"):
+            assistant.stop_conversation()
+            denon.process_command(text)
+
+
     elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
         status_ui.status('ready')
 
@@ -61,9 +99,10 @@ def process_event(event):
 
 def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
+    denon = DenonConnection("192.168.1.137")
     with Assistant(credentials) as assistant:
         for event in assistant.start():
-            process_event(event)
+            process_event(assistant, event, denon)
 
 
 if __name__ == '__main__':

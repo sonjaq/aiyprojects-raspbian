@@ -1,0 +1,69 @@
+import time
+import requests
+
+class DenonConnection(object):
+    """POSTS commands to Denon API server"""
+    def __init__(self, ip_address):
+        self._ip_address = ip_address
+        self._commands = None
+        self._endpoint = "http://%s/api/" % ip_address
+
+
+    def process_command_string(self, text):
+        command_queue = []
+        if text.find("on") == 1:
+            command_queue.append("ZMON")
+        if text.find("power off") == 1:
+            command_queue.append("ZMOFF")
+            return command_queue
+
+        if text.find("xbox") == 1:
+            command_queue.append("SIGAME", None)
+        elif text.find("apple") == 1:
+            command_queue.append("SIMPLAY")
+        elif text.find("dvd") == 1:
+            command_queue.append("SIDVD")
+        elif text.find("cable") == 1:
+            command_queue.append("SISAT/CABLE")
+
+        if text.find("dolby") == 1:
+            command_queue.append("MSDOLBY_DIGITAL")
+        elif text.find("dts") == 1:
+            command_queue.append("MSDTS_SURROUND")
+        elif text.find("stereo") == 1:
+            command_queue.append("MSSTEREO")
+
+        if text.find("music") == 1:
+            command_queue.append("MSMUSIC")
+        elif text.find("movie") == 1:
+            command_queue.append("MSMOVIE")
+        elif text.find("direct") == 1:
+            command_queue.append("MSDIRECT")
+
+        if text.find("volume") == 1:
+            if text.find("up"):
+                command_queue.append("MVUP")
+            elif text.find("down") == 1:
+                command_queue.append("MVDOWN")
+
+        if text.find("unmute") == 1:
+            command_queue.append("MUOFF")
+        elif text.find('mute') == 1:
+            command_queue.append("MUON")
+
+        return command_queue
+
+
+    def handle_command_queue(self, queue):
+        for item in queue:
+            self.send(item)
+            time.sleep(1)
+
+    def send(self, command):
+        if not self.valid_command(command):
+            return False
+        payload = {"action": command}
+
+        response = requests.post(self._endpoint, payload)
+        return response
+

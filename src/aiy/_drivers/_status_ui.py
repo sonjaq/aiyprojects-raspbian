@@ -51,11 +51,17 @@ class _StatusUi(object):
         if self._wavs == None:
             self._wavs = glob.glob("/home/pi/sounds/*.wav")
 
-        if len(self._wavs) == 0:
+        wav_count = len(self._wavs)
+        if wav_count == 0:
             return None
 
         wav = random.choice(self._wavs)
         return wav
+
+    def play_random_bb8_sound(self):
+        wav = self.get_wav()
+        if wav is not None:
+            aiy.audio.play_wave(wav)
 
     def set_trigger_sound_wave(self, trigger_sound_wave):
         """Set the trigger sound.
@@ -89,9 +95,7 @@ class _StatusUi(object):
             return False
         aiy.voicehat.get_led().set_state(self._state_map[status])
         if status == 'listening' or status == "ready":
-            wav = self.get_wav()
-            if wav is not None:
-                aiy.audio.play_wave(wav)
-
+            self.play_random_bb8_sound()
+            
 
         return True
