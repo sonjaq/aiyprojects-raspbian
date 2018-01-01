@@ -3,10 +3,9 @@ import requests
 
 class DenonConnection(object):
     """POSTS commands to Denon API server"""
-    def __init__(self, ip_address):
-        self._ip_address = ip_address
-        self._commands = None
-        self._endpoint = "http://%s/api/" % ip_address
+    def __init__(self, api_host, port="8000"):
+        self._api_host = api_host
+        self._endpoint = "http://%s:%s/api/" % api_host, port
 
 
     def process_command_string(self, text):
@@ -72,4 +71,3 @@ class DenonConnection(object):
 
         response = requests.post(self._endpoint, payload)
         return response
-
