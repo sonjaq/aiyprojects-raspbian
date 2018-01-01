@@ -49,7 +49,7 @@ class _StatusUi(object):
 
     def get_wav(self):
         if self._wavs == None:
-            self._wavs = glob.glob("/home/pi/sounds")
+            self._wavs = glob.glob("/home/pi/sounds/*.wav")
 
         if len(self._wavs) == 0:
             return None
