@@ -10,11 +10,12 @@ class DenonConnection(object):
 
     def process_command_string(self, text):
         command_queue = []
-        if "receiver on" in text:
-            command_queue.append("ZMON")
         if "receiver off" in text:
             command_queue.append("ZMOFF")
             return command_queue
+        # make sure receiver on
+        command_queue.append("ZMON")
+
 
         if "switch" or "to" or "use" or "play" in text:
             if "xbox" in text:
