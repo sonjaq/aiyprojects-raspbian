@@ -118,12 +118,15 @@ class DenonConnection(object):
     def handle_command_queue(self):
         for item in self._queue:
             self.send(item)
-            sleep_time = 1
+            if item == b"ZMON\r":
+                sleep_time = 7
+            else:
+                sleep_time = 1
             time.sleep(sleep_time)
         self._queue = []
 
     def connector(self):
-        if self._connection == None or not self._connection.sock_avail():
+        if self._connection is None or not self._connection.sock_avail():
             self._connection = Telnet()
             self._connection.open(self._api_host, self._port)
             time.sleep(4)
