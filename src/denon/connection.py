@@ -9,6 +9,7 @@ class DenonConnection(object):
         self._connection = None
 
     def process_command_string(self, text):
+        print(text)
         command_queue = []
         if "receiver off" in text:
             command_queue.append("ZMOFF")
