@@ -1,8 +1,12 @@
 import time
 from telnetlib import Telnet
+
+from trigger_map import TriggerMap
 """
 Connects to a Denon AVR-X1400H receiver via telnet and sends commands that line
 up with with the Denon AVR Spec
+
+author: Sonja Leaf <avleaf@gmail.com>
 """
 class DenonConnection(object):
     """POSTS commands to Denon API server"""
@@ -10,120 +14,12 @@ class DenonConnection(object):
         self._api_host = api_host
         self._port = port
         self._connection = None
-        self._words = None
-        self._queue = []
+        self.action_map = TriggerMap()
 
-    def process_command_string(self, words):
-        self._words = frozenset(words)
-        power = self.power_commands()
-        source = self.input_commands()
-        audio = self.audio_commands()
-        volume = self.volume_commands()
-        self.queue_commands(power, source, audio, volume)
+    def process_command_string(self, words, text):
+        command = self.action_map.mapped_trigger(words, text)
+        self.send(command)
 
-
-    def queue_commands(self, power, source, audio, volume):
-        print(power, source, audio, volume)
-        if power is not None:
-            self._queue.append(power)
-            if power == b"ZMOFF\r":
-                return
-
-        if source is not None:
-            self._queue.append(source)
-        if audio is not None:
-            self._queue.append(audio)
-        if volume is not None:
-            self._queue.append(volume)
-
-
-    def power_commands(self):
-        found = None
-        if "receiver" in self._words and ("off" in self._words or "app" in self._words):
-            found = b"ZMOFF"
-        elif "receiver" in self._words and "on" in self._words:
-            found = b"ZMON"
-        if found:
-            return found + b'\r'
-        return None
-
-    def input_commands(self):
-        found = None
-        if "xbox" in self._words or "games" in self._words:
-            found = b"SIGAME"
-        elif "apple" in self._words or "tv" in self._words or "listen" in self._words:
-            found = b"SIMPLAY"
-        elif "dvd" in self._words:
-            found = b"SIDVD"
-        elif "cable" in self._words:
-            found = b"SISAT/CABLE"
-        elif "bluetooth" in self._words:
-            found = b"SIBT"
-        if found:
-            return found +  b'\r'
-        return None
-
-    def audio_commands(self):
-        processing = None
-        if "stereo" in self._words:
-            processing = b"MSSTEREO"
-        elif "atmos" in self._words or "atmos" in self._words or "mose" in self._words or "atmose" in self._words:
-            processing = b"MSDOLBY ATMOS"
-        elif "dolby" in self._words or "digital" in self._words:
-            processing = b"MSDOLBY DIGITAL"
-        elif "surround" in self._words or "neural" in self._words or "dps" in self._words or "dts" in self._words:
-            processing = b"MSDTS SURROUND"
-
-        mode = None
-        if "music" in self._words or "listen" in self._words:
-            mode = b"MSMUSIC"
-        elif "game" in self._words:
-            mode = b"MSGAME"
-        elif "movie" in self._words:
-            mode = b"MSMOVIE"
-        elif "direct" in self._words:
-            mode = b"MSDIRECT"
-
-        if processing and mode:
-            return processing + b'\r' + mode + b'\r'
-        elif processing:
-            return processing + b'\r'
-        elif mode:
-            return mode + b'\r'
-
-        return None
-
-
-    def volume_commands(self):
-        if "volume" in self._words and "up" in self._words:
-            return b"MVUP" + b'\r'
-        elif "volume" in self._words and "down" in self._words:
-            return b"MVDOWN" + b'\r'
-
-        if "quiet" in self._words:
-            return b"MV20" + b'\r'
-        elif "normal" in self._words:
-            return b"MV42" + b'\r'
-        elif "loud" in self._words:
-            return b"MV60" + b'\r'
-
-        if "unmute" in self._words:
-            return b"MUOFF" + b'\r'
-        elif "mute" in self._words:
-            return b"MUON" + b'\r'
-
-        return None
-
-
-    def handle_command_queue(self):
-        for item in self._queue:
-            self.send(item)
-            if item == b"ZMON\r":
-                sleep_time = 7
-            else:
-                sleep_time = 1
-            time.sleep(sleep_time)
-        self._queue = []
 
     def connector(self):
         if self._connection is None or not self._connection.sock_avail():
@@ -134,4 +30,8 @@ class DenonConnection(object):
 
 
     def send(self, command):
+        if b"ZMON\r" in command:
+            self.connector().write(b"ZMON\r")
+            command = command.replace(b"ZMON\r", b"")
+            time.sleep(7)
         self.connector().write(command)
