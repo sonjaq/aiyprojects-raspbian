@@ -15,7 +15,6 @@ class DenonConnection(object):
 
     def process_command_string(self, words):
         self._words = frozenset(words)
-        print(words)
         power = self.power_commands()
         source = self.input_commands()
         audio = self.audio_commands()
@@ -119,7 +118,6 @@ class DenonConnection(object):
     def handle_command_queue(self):
         for item in self._queue:
             self.send(item)
-            print(item)
             sleep_time = 1
             time.sleep(sleep_time)
         self._queue = []
