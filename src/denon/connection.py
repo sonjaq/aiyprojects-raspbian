@@ -15,6 +15,7 @@ class DenonConnection(object):
 
     def process_command_string(self, words):
         self._words = words
+        print(words)
         self._queue = []
         self.power_commands()
         self.input_commands()
