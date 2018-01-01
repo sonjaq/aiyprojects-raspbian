@@ -14,8 +14,9 @@ class DenonConnection(object):
             command_queue.append("ZMOFF")
             return command_queue
         # make sure receiver on
-        command_queue.append("ZMON")
-
+        
+        if "receiver on" in text:
+            command_queue.append("ZMON")
 
         if "switch" or "to" or "use" or "play" in text:
             if "xbox" in text:
@@ -37,7 +38,7 @@ class DenonConnection(object):
         if "music" in text:
             command_queue.append("MSMUSIC")
         elif "game" in text:
-            command_queue.append("<MSGAME></MSGAME>")
+            command_queue.append("MSGAME")
         elif "movie" in text:
             command_queue.append("MSMOVIE")
         elif "direct" in text:
@@ -68,7 +69,7 @@ class DenonConnection(object):
         for item in queue:
             self.send(item)
             sleep_time = 7 if item == "ZMON" else 1
-            time.sleep(1)
+            time.sleep(sleep_time)
 
     def send(self, command):
         if self._connection == None or not self._connection.sock_avail():
