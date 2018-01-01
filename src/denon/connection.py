@@ -50,7 +50,7 @@ class DenonConnection(object):
         found = None
         if "xbox" in self._words or "games" in self._words:
             found = b"SIGAME"
-        elif "apple" or "tv" or "listen" in self._words:
+        elif "apple" in self._words or "tv" in self._words or "listen" in self._words:
             found = b"SIMPLAY"
         elif "dvd" in self._words:
             found = b"SIDVD"
