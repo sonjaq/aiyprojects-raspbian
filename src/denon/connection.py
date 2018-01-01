@@ -10,7 +10,7 @@ class DenonConnection(object):
 
     def process_command_string(self, text):
         command_queue = []
-        if "on" in text:
+        if "receiver on" in text:
             command_queue.append("ZMON")
         if "receiver off" in text:
             command_queue.append("ZMOFF")
@@ -36,7 +36,7 @@ class DenonConnection(object):
         if "music" in text:
             command_queue.append("MSMUSIC")
         elif "game" in text:
-            command_queue.append("MSGAME")
+            command_queue.append("<MSGAME></MSGAME>")
         elif "movie" in text:
             command_queue.append("MSMOVIE")
         elif "direct" in text:
