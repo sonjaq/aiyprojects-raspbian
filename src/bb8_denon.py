@@ -33,6 +33,7 @@ import aiy.assistant.auth_helpers
 import aiy.voicehat
 
 from denon.connection import DenonConnection
+from denon.trigger_map import TriggerMap
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 
@@ -60,7 +61,7 @@ def say_ip(status_ui):
     aiy.audio.say('%s' % ip_address.decode('utf-8'))
 
 
-def process_event(assistant, event, denon):
+def process_event(assistant, event, denon, trigger_map):
     status_ui = aiy.voicehat.get_status_ui()
     # status_ui.set_trigger_sound_wave('~/trigger_sound.wav')
     if event.type == EventType.ON_START_FINISHED:
@@ -76,7 +77,6 @@ def process_event(assistant, event, denon):
         if 'receiver' in words or 'denon' in words or 'listen' in words or 'watch' in words or 'xbox' in words or 'games' in words or 'apple' in words or 'tv' in words or 'music' in words or 'movie' in words or 'mode' in words:
             assistant.stop_conversation()
             denon.process_command_string(words, text)
-            denon.handle_command_queue()
         elif text == 'power off':
             assistant.stop_conversation()
             power_off_pi()
@@ -102,10 +102,11 @@ def process_event(assistant, event, denon):
 def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
     denon = DenonConnection("192.168.1.137", "23")
+    trigger_map = TriggerMap()
     with Assistant(credentials) as assistant:
 
         for event in assistant.start():
-            process_event(assistant, event, denon)
+            process_event(assistant, event, denon, trigger_map)
 
 
 if __name__ == '__main__':

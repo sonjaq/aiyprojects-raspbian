@@ -1,7 +1,6 @@
 import time
 from telnetlib import Telnet
 
-from trigger_map import TriggerMap
 """
 Connects to a Denon AVR-X1400H receiver via telnet and sends commands that line
 up with with the Denon AVR Spec
@@ -10,11 +9,11 @@ author: Sonja Leaf <avleaf@gmail.com>
 """
 class DenonConnection(object):
     """POSTS commands to Denon API server"""
-    def __init__(self, api_host, port="23"):
+    def __init__(self, api_host, port="23", trigger_map):
         self._api_host = api_host
         self._port = port
         self._connection = None
-        self.action_map = TriggerMap()
+        self.action_map = trigger_map
 
     def process_command_string(self, words, text):
         command = self.action_map.mapped_trigger(words, text)
