@@ -31,12 +31,16 @@ class DenonConnection(object):
 
         if "stereo" in text:
             command_queue.append("MSSTEREO")
-        elif "dolby" in text:
+        elif "atmos" or "at mo" in text:
+            command_queue.append("MSDOLBY ATMOS")
+        elif "dolby" or "digital" in text:
             command_queue.append("MSDOLBY DIGITAL")
         elif "neural x" or "neural app" or "dps" or "dts" in text:
             command_queue.append("MSDTS SURROUND")
-
-        if "music" in text:
+        else:
+            command_queue
+        
+        if "music" or "listen" in text:
             command_queue.append("MSMUSIC")
         elif "game" in text:
             command_queue.append("MSGAME")
@@ -66,9 +70,7 @@ class DenonConnection(object):
         return command_queue
 
     def telnet_options(self, socket, command, option):
-        print(socket)
-        print(command)
-        print(option)
+        from ptpython.repl import embed
 
         return socket
 
@@ -85,5 +87,6 @@ class DenonConnection(object):
             self._connection = Telnet()
             self._connection.open(self._api_host, self._port)
             self._connection.set_option_negotiation_callback(callback)
+            time.sleep(4)
 
-        self._connection.write(command.encode('ascii') + b'\n')
+        self._connection.write(command.encode('ascii') + b'\r')
