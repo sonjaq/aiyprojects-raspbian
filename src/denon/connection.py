@@ -11,7 +11,7 @@ class DenonConnection(object):
         self._port = port
         self._connection = None
         self._words = None
-        self._queue = None
+        self._queue = []
 
     def process_command_string(self, words):
         self._words = frozenset(words)
@@ -20,83 +20,93 @@ class DenonConnection(object):
         source = self.input_commands()
         audio = self.audio_commands()
         volume = self.volume_commands()
-        queue_commands(power, source, audio, volume)
+        self.queue_commands(power, source, audio, volume)
 
 
     def queue_commands(self, power, source, audio, volume):
         print(power, source, audio, volume)
         if power is not None:
-            self._queue.append(power.encode('ascii') + b'\r')
+            self._queue.append(power)
         if source is not None:
-            self._queue.append(source.encode('ascii') + b'\r')
+            self._queue.append(source)
         if audio is not None:
-            self._queue.append(audio.encode('ascii') + b'\r')
+            self._queue.append(audio)
         if volume is not None:
-            self._queue.append(volume.encode('ascii') + b'\r')
+            self._queue.append(volume)
 
 
     def power_commands(self):
         found = None
         if "receiver" and "off" in self._words:
-            found = "ZMOFF"
+            found = b"ZMOFF"
         elif "receiver" and "on" in self._words:
-            found = "ZMON"
-        return found
+            found = b"ZMON"
+        return found + b'\r'
 
     def input_commands(self):
+        found = None
         if "xbox" or "games" in self._words:
-            self._queue.append("SIGAME")
+            found = b"SIGAME"
         elif "apple" or "tv" or "listen" in self._words:
-            self._queue.append("SIMPLAY")
+            found = b"SIMPLAY"
         elif "dvd" in self._words:
-            self._queue.append("SIDVD")
+            found = b"SIDVD"
         elif "cable" in self._words:
-            self._queue.append("SISAT/CABLE")
+            found = b"SISAT/CABLE"
         elif "bluetooth" in self._words:
-            self._queue.append("SIBT")
+            found = b"SIBT"
+        return found +  b'\r'
 
     def audio_commands(self):
+        processing = None
         if "stereo" in self._words:
-            self._queue.append("MSSTEREO")
+            processing = b"MSSTEREO"
         elif "atmos" or "atmos" or "mose" or "atmose" in self._words:
-            self._queue.append("MSDOLBY ATMOS")
+            processing = b"MSDOLBY ATMOS"
         elif "dolby" or "digital" in self._words:
-            self._queue.append("MSDOLBY DIGITAL")
+            processing = b"MSDOLBY DIGITAL"
         elif "dps" or "dts" in self._words:
-            self._queue.append("MSDTS SURROUND")
+            processing = b"MSDTS SURROUND"
 
+        mode = None
         if "music" or "listen" in self._words:
-            self._queue.append("MSMUSIC")
+            mode = b"MSMUSIC"
         elif "game" in self._words:
-            self._queue.append("MSGAME")
+            mode = b"MSGAME"
         elif "movie" in self._words:
-            self._queue.append("MSMOVIE")
+            mode = b"MSMOVIE"
         elif "direct" in self._words:
-            self._queue.append("MSDIRECT")
+            mode = b"MSDIRECT"
+
+        if processing and mode:
+            return processing + b'\r' + mode + b'\r'
+        elif processing:
+            return processing + b'\r'
+        elif mode:
+            return mode + b'\r'
+
+        return None
 
 
     def volume_commands(self):
         if "volume" and "up" in self._words:
-            self._queue.append("MVUP")
-            return
+            return b"MVUP" + b'\r'
         elif "volume" and "down" in self._words:
-            self._queue.append("MVDOWN")
-            return
+            return b"MVDOWN" + b'\r'
 
         if "quiet" in self._words:
-            self._queue.append("MV20")
-            return
+            return b"MV20" + b'\r'
         elif "normal" in self._words:
-            self._queue.append("MV42")
-            return
+            return b"MV42" + b'\r'
         elif "loud" in self._words:
-            self._queue.append("MV60")
-            return
+            return b"MV60" + b'\r'
 
         if "unmute" in self._words:
-            self._queue.append("MUOFF")
+            return b"MUOFF" + b'\r'
         elif "mute" in self._words:
-            self._queue.append("MUON")
+            return b"MUON" + b'\r'
+
+        return None
 
 
     def handle_command_queue(self):
@@ -105,6 +115,7 @@ class DenonConnection(object):
             print(item)
             sleep_time = 1
             time.sleep(sleep_time)
+        self._queue = []
 
     def connector(self):
         if self._connection == None or not self._connection.sock_avail():
