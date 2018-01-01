@@ -16,18 +16,32 @@ class DenonConnection(object):
     def process_command_string(self, words):
         self._words = frozenset(words)
         print(words)
-        self._queue = []
-        self.power_commands()
-        self.input_commands()
-        self.audio_commands()
+        power = self.power_commands()
+        source = self.input_commands()
+        audio = self.audio_commands()
+        volume = self.volume_commands()
+        queue_commands(power, source, audio, volume)
+
+
+    def queue_commands(self, power, source, audio, volume):
+        print(power, source, audio, volume)
+        if power is not None:
+            self._queue.append(power.encode('ascii') + b'\r')
+        if source is not None:
+            self._queue.append(source.encode('ascii') + b'\r')
+        if audio is not None:
+            self._queue.append(audio.encode('ascii') + b'\r')
+        if volume is not None:
+            self._queue.append(volume.encode('ascii') + b'\r')
 
 
     def power_commands(self):
+        found = None
         if "receiver" and "off" in self._words:
-            self._queue.append("ZMOFF")
+            found = "ZMOFF"
         elif "receiver" and "on" in self._words:
-            self._queue.append("ZMON")
-
+            found = "ZMON"
+        return found
 
     def input_commands(self):
         if "xbox" or "games" in self._words:
@@ -48,7 +62,7 @@ class DenonConnection(object):
             self._queue.append("MSDOLBY ATMOS")
         elif "dolby" or "digital" in self._words:
             self._queue.append("MSDOLBY DIGITAL")
-        elif "neural" or "dps" or "dts" in self._words:
+        elif "dps" or "dts" in self._words:
             self._queue.append("MSDTS SURROUND")
 
         if "music" or "listen" in self._words:
@@ -101,4 +115,4 @@ class DenonConnection(object):
 
 
     def send(self, command):
-        self.connector().write(command.encode('ascii') + b'\r')
+        self.connector().write(command)
