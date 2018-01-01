@@ -198,6 +198,7 @@ class TriggerMap(object):
             action = action + self.cable_action
 
         if self.audio_mode_triggered(words, text):
+            mode = ""
             if "game" in text:
                 mode = b"MSGAME\r"
             elif "stereo" in text:
