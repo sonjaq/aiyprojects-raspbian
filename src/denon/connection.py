@@ -100,4 +100,4 @@ class DenonConnection(object):
 
 
     def send(self, command):
-        self.connector.write(command.encode('ascii') + b'\r')
+        self.connector().write(command.encode('ascii') + b'\r')
