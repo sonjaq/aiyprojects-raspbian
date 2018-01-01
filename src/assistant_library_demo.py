@@ -85,6 +85,7 @@ def process_event(assistant, event, denon):
             assistant.stop_conversation()
             say_ip()
         elif (text.find("xbox") == 1) or (text.find("apple") == 1) or (text.find("audio") == 1) or (text.find("video") == 1) or (text.find("music") == 1) or (text.find("stereo") == 1) or (text.find("dolby") == 1) or (text.find("dts") == 1) or (text.find("volume") == 1) or (text.find("tv") == 1):
+            print("text found")
             assistant.stop_conversation()
             denon.handle_command_queue(denon.process_command(text))
 
