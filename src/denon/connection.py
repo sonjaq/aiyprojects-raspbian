@@ -68,7 +68,7 @@ class DenonConnection(object):
 
     def send(self, command):
 
-        payload = {"action": command}
+        payload = {"result": {"action": command}}
 
         response = requests.post(self._endpoint, payload)
         return response
