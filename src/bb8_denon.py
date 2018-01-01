@@ -61,7 +61,7 @@ def say_ip(status_ui):
     aiy.audio.say('%s' % ip_address.decode('utf-8'))
 
 
-def process_event(assistant, event, denon, trigger_map):
+def process_event(assistant, event, denon):
     status_ui = aiy.voicehat.get_status_ui()
     # status_ui.set_trigger_sound_wave('~/trigger_sound.wav')
     if event.type == EventType.ON_START_FINISHED:
@@ -101,12 +101,12 @@ def process_event(assistant, event, denon, trigger_map):
 
 def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
-    denon = DenonConnection("192.168.1.137", "23")
     trigger_map = TriggerMap()
+    denon = DenonConnection("192.168.1.137", "23", trigger_map)
     with Assistant(credentials) as assistant:
 
         for event in assistant.start():
-            process_event(assistant, event, denon, trigger_map)
+            process_event(assistant, event, denon)
 
 
 if __name__ == '__main__':
