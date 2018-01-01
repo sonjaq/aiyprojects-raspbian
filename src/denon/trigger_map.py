@@ -143,7 +143,7 @@ class TriggerMap(object):
                 return True
 
     def audio_mode_triggered(self, words, text):
-        for trigger in audio_mode_triggers():
+        for trigger in self.audio_mode_triggers():
             if trigger in words or trigger in text:
                 return True
 
