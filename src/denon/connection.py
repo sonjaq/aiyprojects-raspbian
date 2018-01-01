@@ -6,7 +6,7 @@ class DenonConnection(object):
     def __init__(self, api_host, port="8000"):
         self._api_host = api_host
         self._port = port
-        self._connection = None 
+        self._connection = None
 
     def process_command_string(self, text):
         command_queue = []
@@ -16,14 +16,15 @@ class DenonConnection(object):
             command_queue.append("ZMOFF")
             return command_queue
 
-        if "xbox" in text:
-            command_queue.append("SIGAME", None)
-        elif "apple" in text:
-            command_queue.append("SIMPLAY")
-        elif "dvd" in text:
-            command_queue.append("SIDVD")
-        elif "cable" in text:
-            command_queue.append("SISAT/CABLE")
+        if "switch" or "to" or "use" or "play" in text:
+            if "xbox" in text:
+                command_queue.append("SIGAME")
+            elif "apple" in text:
+                command_queue.append("SIMPLAY")
+            elif "dvd" in text:
+                command_queue.append("SIDVD")
+            elif "cable" in text:
+                command_queue.append("SISAT/CABLE")
 
         if "dolby" in text:
             command_queue.append("MSDOLBY_DIGITAL")
