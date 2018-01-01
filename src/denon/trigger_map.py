@@ -170,7 +170,7 @@ class TriggerMap(object):
                 return True
 
     def receiver_triggered(self, words, text):
-        for trigger in self.reciever_recognition():
+        for trigger in self.receiver_recognition():
             if trigger in words or trigger in text:
                 return True
 
