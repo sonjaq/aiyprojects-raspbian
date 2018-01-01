@@ -75,9 +75,9 @@ class DenonConnection(object):
     def handle_command_queue(self, queue):
         print(queue)
         for item in queue:
-            self.send(item, telnet_options)
+            self.send(item, self.telnet_options)
             print(item)
-            sleep_time = 7 if item == "ZMON" else 1
+            sleep_time = 1
             time.sleep(sleep_time)
 
     def send(self, command, callback):
