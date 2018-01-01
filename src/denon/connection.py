@@ -33,7 +33,7 @@ class DenonConnection(object):
             command_queue.append("MSSTEREO")
         elif "dolby" in text:
             command_queue.append("MSDOLBY DIGITAL")
-        elif "dts" or "surround" or "neural x" in text:
+        elif "neural x" in text:
             command_queue.append("MSDTS SURROUND")
 
         if "music" in text:
@@ -65,17 +65,25 @@ class DenonConnection(object):
 
         return command_queue
 
+    def telnet_options(self, socket, command, option):
+        print(socket)
+        print(command)
+        print(option)
+
+        return socket
 
     def handle_command_queue(self, queue):
+        print(queue)
         for item in queue:
-            self.send(item)
+            self.send(item, telnet_options)
             print(item)
             sleep_time = 7 if item == "ZMON" else 1
             time.sleep(sleep_time)
 
-    def send(self, command):
+    def send(self, command, callback):
         if self._connection == None or not self._connection.sock_avail():
             self._connection = Telnet()
             self._connection.open(self._api_host, self._port)
+            self._connection.set_option_negotiation_callback(callback)
 
         self._connection.write(command.encode('ascii') + b'\n')
