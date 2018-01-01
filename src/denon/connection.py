@@ -57,7 +57,8 @@ class DenonConnection(object):
         elif "mute" in text:
             command_queue.append("MUON")
 
-        print("queue:" + command_queue)
+        print("queue:") 
+        print(command_queue)
         return command_queue
 
 
