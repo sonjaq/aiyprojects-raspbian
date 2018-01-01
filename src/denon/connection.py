@@ -68,6 +68,7 @@ class DenonConnection(object):
     def handle_command_queue(self, queue):
         for item in queue:
             self.send(item)
+            print(item)
             sleep_time = 7 if item == "ZMON" else 1
             time.sleep(sleep_time)
 
