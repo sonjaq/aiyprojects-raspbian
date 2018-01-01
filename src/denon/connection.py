@@ -10,54 +10,54 @@ class DenonConnection(object):
 
     def process_command_string(self, text):
         command_queue = []
-        if text.find("on") == 1:
+        if "on" in text:
             command_queue.append("ZMON")
-        if text.find("receiver off") == 1:
+        if "receiver off" in text:
             command_queue.append("ZMOFF")
             return command_queue
 
-        if text.find("xbox") == 1:
+        if "xbox" in text:
             command_queue.append("SIGAME", None)
-        elif text.find("apple") == 1:
+        elif "apple" in text:
             command_queue.append("SIMPLAY")
-        elif text.find("dvd") == 1:
+        elif "dvd" in text:
             command_queue.append("SIDVD")
-        elif text.find("cable") == 1:
+        elif "cable" in text:
             command_queue.append("SISAT/CABLE")
 
-        if text.find("dolby") == 1:
+        if "dolby" in text:
             command_queue.append("MSDOLBY_DIGITAL")
-        elif text.find("dts") == 1:
+        elif "dts" in text:
             command_queue.append("MSDTS_SURROUND")
-        elif text.find("stereo") == 1:
+        elif "stereo" in text:
             command_queue.append("MSSTEREO")
 
-        if text.find("music") == 1:
+        if "music" in text:
             command_queue.append("MSMUSIC")
-        elif text.find("movie") == 1:
+        elif "movie" in text:
             command_queue.append("MSMOVIE")
-        elif text.find("direct") == 1:
+        elif "direct" in text:
             command_queue.append("MSDIRECT")
 
-        if text.find("volume") == 1:
-            if text.find("up"):
+        if "volume" in text:
+            if "up" in text ):
                 command_queue.append("MVUP")
-            elif text.find("down") == 1:
+            elif "down" in text:
                 command_queue.append("MVDOWN")
 
-        if text.find("quiet") == 1:
+        if "quiet" in text:
             command_queue.append("MV20")
-        elif text.find("normal") == 1:
+        elif "normal" in text:
             command_queue.append("MV42")
-        elif text.find("loud") == 1:
+        elif "loud" in text:
             command_queue.append("MV60")
 
-        if text.find("unmute") == 1:
+        if "unmute" in text:
             command_queue.append("MUOFF")
-        elif text.find('mute') == 1:
+        elif "mute" in text:
             command_queue.append("MUON")
 
-        print(command_queue)
+        print("queue:" + command_queue)
         return command_queue
 
 
