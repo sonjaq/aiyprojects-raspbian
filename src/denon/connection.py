@@ -33,7 +33,7 @@ class DenonConnection(object):
             command_queue.append("MSSTEREO")
         elif "dolby" in text:
             command_queue.append("MSDOLBY DIGITAL")
-        elif "neural x" in text:
+        elif "neural x" or "neural app" or "dps" or "dts" in text:
             command_queue.append("MSDTS SURROUND")
 
         if "music" in text:
