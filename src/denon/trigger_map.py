@@ -201,18 +201,19 @@ class TriggerMap(object):
             mode = ""
             if "game" in text:
                 mode = b"MSGAME\r"
-            elif "stereo" in text:
-                mode = self.mode_stereo_action()
             elif "movie" in text:
                 mode = self.mode_movie_action()
             elif "music" in text:
                 mode = self.mode_music_action()
-            elif "dolby atmos" in text or "atmos" in text:
+
+            if "dolby atmos" in text or "atmos" in text:
                 mode = b"MSDOLBY ATMOS\r"
             elif "dolby" in text or "dolby surround" in text:
                 mode = b"MSDOLBY DIGITAL\r"
             elif "dts" in text or "dps" in text or "digital theater sound" in text or "neural" in text:
                 mode = b"MSDTS SURROUND\r"
+            elif "stereo" in text:
+                mode = self.mode_stereo_action()
             action = action + mode
 
         if self.volume_triggered(words, text):
