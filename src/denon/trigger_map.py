@@ -213,7 +213,7 @@ class TriggerMap(object):
                 mode = b"MSDOLBY DIGITAL\r"
             elif "dts" in text or "dps" in text or "digital theater sound" in text or "neural" in text:
                 mode = b"MSDTS SURROUND\r"
-        action = action + mode
+            action = action + mode
 
         if self.volume_triggered(words, text):
             if "up" in text:
