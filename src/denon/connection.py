@@ -67,6 +67,7 @@ class DenonConnection(object):
 
     def send(self, command):
         if not self._connection or not self._connection.sock_avail():
+            print('initiating receiver connection')
             self._connection = Telnet()
             self._connection.open(self._api_host, self._port)
 
