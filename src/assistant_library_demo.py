@@ -101,7 +101,7 @@ def process_event(assistant, event, denon):
 
 def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
-    denon = DenonConnection("localhost", "8000")
+    denon = DenonConnection("192.168.1.137", "23")
     with Assistant(credentials) as assistant:
         for event in assistant.start():
             process_event(assistant, event, denon)

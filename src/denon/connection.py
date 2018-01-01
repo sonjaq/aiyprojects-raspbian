@@ -1,13 +1,12 @@
 import time
-import requests
+from telnetlib import Telnet
 
 class DenonConnection(object):
     """POSTS commands to Denon API server"""
     def __init__(self, api_host, port="8000"):
         self._api_host = api_host
         self._port = port
-        self._endpoint = "http://{0._api_host}:{0._port}/api/".format(self)
-
+        self._connection = None 
 
     def process_command_string(self, text):
         command_queue = []
@@ -67,7 +66,8 @@ class DenonConnection(object):
             time.sleep(1)
 
     def send(self, command):
-        payload = {"result": {"action": command}}
-        response = requests.post(self._endpoint, payload)
-        print(response)
-        return response
+        if not self._connection or not self._connection.sock_avail():
+            self._connection = Telnet()
+            self._connection.open(self._api_host, self._port)
+
+        self._connection.write(command.encode('ascii') + b'\n')
