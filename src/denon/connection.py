@@ -35,6 +35,8 @@ class DenonConnection(object):
 
         if "music" in text:
             command_queue.append("MSMUSIC")
+        elif "game" in text:
+            command_queue.append("MSGAME")
         elif "movie" in text:
             command_queue.append("MSMOVIE")
         elif "direct" in text:
