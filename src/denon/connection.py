@@ -14,7 +14,7 @@ class DenonConnection(object):
         self._queue = None
 
     def process_command_string(self, words):
-        self._words = words
+        self._words = frozenset(words)
         print(words)
         self._queue = []
         self.power_commands()
