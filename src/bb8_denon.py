@@ -61,7 +61,7 @@ def say_ip(status_ui):
     aiy.audio.say('%s' % ip_address.decode('utf-8'))
 
 
-def process_event(assistant, event, denon):
+def process_event(assistant, event, denon, trigger_map):
     status_ui = aiy.voicehat.get_status_ui()
     # status_ui.set_trigger_sound_wave('~/trigger_sound.wav')
     if event.type == EventType.ON_START_FINISHED:
@@ -74,7 +74,7 @@ def process_event(assistant, event, denon):
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text'].lower()
         words = text.split()
-        if 'receiver' in words or 'denon' in words or 'listen' in words or 'watch' in words or 'xbox' in words or 'games' in words or 'apple' in words or 'tv' in words or 'music' in words or 'movie' in words or 'mode' in words:
+        if trigger_map.receiver_triggered(words, text):
             assistant.stop_conversation()
             denon.process_command_string(words, text)
         elif text == 'power off':
@@ -106,7 +106,7 @@ def main():
     with Assistant(credentials) as assistant:
 
         for event in assistant.start():
-            process_event(assistant, event, denon)
+            process_event(assistant, event, denon, trigger_map)
 
 
 if __name__ == '__main__':

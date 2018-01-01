@@ -8,6 +8,8 @@ class TriggerMap(object):
     def __init__(self):
         super(TriggerMap, self).__init__()
 
+    def receiver_recognition(self):
+        return self.xbox_triggers() + self.receiver_name_triggers() + self.apple_tv_triggers() + self.blu_ray_triggers() + self.bluetooth_triggers() + self.nintendo_triggers() + self.audio_mode_triggers() + self.cable_triggers()
 
     def xbox_triggers(self):
         return ["games", "game", "xbox", "video games", "shoot", "blow up", "race", "racing", "netflix"]
@@ -167,7 +169,10 @@ class TriggerMap(object):
             if trigger in words or trigger in text:
                 return True
 
-
+    def receiver_triggered(self, words, text):
+        for trigger in self.reciever_recognition():
+            if trigger in words or trigger in text:
+                return True
 
     def volume_triggered(self, words, text):
         for trigger in self.volume_triggers():
