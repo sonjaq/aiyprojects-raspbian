@@ -37,7 +37,8 @@ class DenonConnection(object):
             self._queue.append("SIDVD")
         elif "cable" in self._words:
             self._queue.append("SISAT/CABLE")
-        elif "bluetooth" in self._words
+        elif "bluetooth" in self._words:
+            self._queue.append("SIBT")
 
     def audio_commands(self):
         if "stereo" in self._words:
