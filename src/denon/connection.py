@@ -40,7 +40,7 @@ class DenonConnection(object):
             command_queue.append("MSDIRECT")
 
         if "volume" in text:
-            if "up" in text ):
+            if "up" in text:
                 command_queue.append("MVUP")
             elif "down" in text:
                 command_queue.append("MVDOWN")
