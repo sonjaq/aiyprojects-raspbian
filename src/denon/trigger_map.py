@@ -177,10 +177,14 @@ class TriggerMap(object):
                 return True
 
     def receiver_triggered(self, words, text):
+        matched = []
         for trigger in self.receiver_recognition():
             if trigger in words or trigger in text:
-                logging.info("RECEIVER: " + trigger)
-                return True
+                matched.append(trigger)
+
+        if len(matched) > 0:
+            logging.info(matched)
+            return True
 
     def volume_triggered(self, words, text):
         for trigger in self.volume_triggers():
