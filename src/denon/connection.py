@@ -18,6 +18,7 @@ class DenonConnection(object):
     def process_command_string(self, words, text):
         command = self.action_map.mapped_trigger(words, text)
         self.send(command)
+        return command
 
 
     def connector(self):

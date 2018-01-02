@@ -73,10 +73,12 @@ def process_event(assistant, event, denon, trigger_map):
 
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text'].lower()
+        logging.info(text)
         words = text.split()
         if trigger_map.receiver_triggered(words, text):
             assistant.stop_conversation()
-            denon.process_command_string(words, text)
+            sent_command = denon.process_command_string(words, text)
+            logging.info(sent_command)
         elif text == 'power off':
             assistant.stop_conversation()
             power_off_pi()

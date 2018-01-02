@@ -215,7 +215,7 @@ class TriggerMap(object):
                 mode = b"MSDOLBY ATMOS\r"
             elif "dolby" in text or "dolby surround" in text:
                 mode = b"MSDOLBY DIGITAL\r"
-            elif "dts" in text or "dps" in text or "digital theater sound" in text or "neural" in text:
+            elif "dts" in text or "dps" in text or "digital theater" in text or "neural" in text:
                 mode = b"MSDTS SURROUND\r"
             elif "stereo" in text:
                 mode = self.mode_stereo_action()
