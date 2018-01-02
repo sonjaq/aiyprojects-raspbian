@@ -232,7 +232,7 @@ class TriggerMap(object):
             elif "stereo" in text:
                 mode = self.mode_stereo_action()
             elif "direct" in text:
-                mode = b"MSDIRECT\b"
+                mode = b"MSDIRECT\r"
             action = action + mode
 
         if self.volume_triggered(words, text):
