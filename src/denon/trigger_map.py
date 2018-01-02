@@ -1,3 +1,10 @@
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
+)
+
 """
 This is a map of triggers and utility functions for Denon Commands
 
@@ -172,6 +179,7 @@ class TriggerMap(object):
     def receiver_triggered(self, words, text):
         for trigger in self.receiver_recognition():
             if trigger in words or trigger in text:
+                logging.info("RECEIVER: " + trigger)
                 return True
 
     def volume_triggered(self, words, text):
@@ -219,6 +227,8 @@ class TriggerMap(object):
                 mode = b"MSDTS SURROUND\r"
             elif "stereo" in text:
                 mode = self.mode_stereo_action()
+            elif "direct" in text:
+                mode = b"MSDIRECT\b"
             action = action + mode
 
         if self.volume_triggered(words, text):

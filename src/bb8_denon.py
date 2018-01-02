@@ -73,7 +73,7 @@ def process_event(assistant, event, denon, trigger_map):
 
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text'].lower()
-        logging.info(text)
+        logging.info("Text: " + text)
         words = text.split()
         if trigger_map.receiver_triggered(words, text):
             assistant.stop_conversation()
