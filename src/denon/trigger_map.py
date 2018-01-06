@@ -28,16 +28,16 @@ class TriggerMap(object):
         return ["blu-ray", "blue ray", "blu ray"]
 
     def nintendo_triggers(self):
-        return ["nintendo switch", "switch", "nintendo"]
+        return ["nintendo switch", "nintendo"]
 
     def bluetooth_triggers(self):
-        return ["bluetooth", "blue teeth", "blue to", "blooptooth"]
+        return ["bluetooth", "blue teeth", "blue to", "blue two", "blooptooth"]
 
     def cable_triggers(self):
         return ["cable", "cable sat", "satellite"]
 
     def volume_triggers(self):
-        return ["volume", "quiet", "load", "loud", "up", "down", "mute", "normal"]
+        return ["loudness", "quietness", "volume", "quiet", "load", "loud", "up", "down", "mute", "normal"]
 
     def audio_mode_triggers(self):
         return ["dolby", "digital", "surround", "dts", "dps", "mode", "music", "movie", "game", "games", "atmos", "at mo", "neural x", "normal x"]
@@ -133,49 +133,39 @@ class TriggerMap(object):
     def mode_stereo_action(self):
         return b"MSSTEREO\r"
 
-
-
-
-    def xbox_triggered(self, words, text):
-        for trigger in self.xbox_triggers():
+    def trigger_triggered(self, triggers, words, text):
+        for trigger in triggers():
             if trigger in words or trigger in text:
                 return True
 
-    def apple_tv_triggered(self, words, text):
-        for trigger in self.apple_tv_triggers():
-            if trigger in words or trigger in text:
-                return True
+    def input_trigger_triggered(self, triggers, words, text):
+        for action, trigger in triggers.items():
+            if self.trigger_triggered(trigger, words, text):
+                return self.action_triggered(action)
 
-    def nintendo_triggered(self, words, text):
-        for trigger in self.nintendo_triggers():
-            if trigger in words or trigger in text:
-                return True
+    def action_triggered(self, action):
+        actions = {
+            'xbox': self.xbox_action,
+            'apple_tv': self.apple_tv_action,
+            'nintendo': self.nintendo_action,
+            'blu_ray': self.blu_ray_action,
+            'bluetooth': self.bluetooth_action,
+            'cable': self.cable_action
+        }
+        return actions.get(action)
 
-    def audio_mode_triggered(self, words, text):
-        for trigger in self.audio_mode_triggers():
-            if trigger in words or trigger in text:
-                return True
-
-    def receiver_power_triggered(self, words, text):
-        for trigger in self.receiver_power_triggers():
-            if trigger in words or trigger in text:
-                return True
-
-    def blu_ray_triggered(self, words, text):
-        for trigger in self.blu_ray_triggers():
-            if trigger in words or trigger in text:
-                return True
-
-    def bluetooth_triggered(self, words, text):
-        for trigger in self.bluetooth_triggers():
-            if trigger in words or trigger in text:
-                return True
-
-    def cable_triggered(self, words, text):
-        for trigger in self.cable_triggers():
-            if trigger in words or trigger in text:
-                return True
-
+    def special_word_action_triggers(self, text):
+        special_words = {
+            'beep beep boop': b'SIGAME\rMSGAME\r',
+            'beep boop boop': b'SIGAME\rMSMOVIE\r',
+            'boop boop boop': b'SIMPLAY\rMSMUSIC\rMSSTEREO\r',
+            'boop boop beep': b'SIMPLAY\rMSMUSIC\rMSDTS SURROUND\r',
+            'boop beep beep': b'SIMPLAY\rMSMUSIC\rMSDOLBY DIGITAL\r'
+        }
+        for phrase, action in special_words.items():
+            if phrase in text:
+                return action
+        
     def receiver_triggered(self, words, text):
         matched = []
         for trigger in self.receiver_recognition():
@@ -186,35 +176,36 @@ class TriggerMap(object):
             logging.info(matched)
             return True
 
-    def volume_triggered(self, words, text):
-        for trigger in self.volume_triggers():
-            if trigger in words or trigger in text:
-                return True
-
-
     def mapped_trigger(self, words, text):
         action = b""
 
-        if self.receiver_power_triggered(words, text):
+        words = frozenset(words)
+        if self.trigger_triggered(self.receiver_power_triggers, words, text):
             if "on" in text:
                 action = self.receiver_power_on_action()
             if "off" in text or "app" in text:
                 return self.receiver_standby_action()
 
-        if self.xbox_triggered(words, text):
-            action = action + self.xbox_action()
-        elif self.apple_tv_triggered(words, text):
-            action =  action + self.apple_tv_action()
-        elif self.nintendo_triggered(words, text):
-            action = action + self.nintendo_action()
-        elif self.blu_ray_triggered(words, text):
-            action = action + self.blu_ray_action()
-        elif self.bluetooth_triggered(words, text):
-            action = action + self.bluetooth_action()
-        elif self.cable_triggered(words, text):
-            action = action + self.cable_action()
+        special_action = self.special_word_action_triggers(text)
+        if special_action:
+            return special_action
+    
+        input_triggers = { 
+            'xbox': self.xbox_triggers, 
+            'apple_tv': self.apple_tv_triggers,
+            'nintendo': self.nintendo_triggers, 
+            'blu_ray': self.blu_ray_triggers, 
+            'bluetooth': self.bluetooth_triggers, 
+            'cable': self.cable_triggers 
+        }
 
-        if self.audio_mode_triggered(words, text):
+        input_triggered = None
+        for triggers in input_triggers:
+            input_triggered = self.input_trigger_triggered(input_triggers, words, text)
+        if input_triggered is not None:
+            action = action + input_triggered()
+
+        if self.trigger_triggered(self.audio_mode_triggers, words, text):
             mode = b""
             if "game" in text:
                 mode = b"MSGAME\r"
@@ -235,20 +226,20 @@ class TriggerMap(object):
                 mode = b"MSDIRECT\r"
             action = action + mode
 
-        if self.volume_triggered(words, text):
+        if self.trigger_triggered(self.volume_triggers, words, text):
             if "up" in text:
                 action = action + self.volume_up_action()
             elif "down" in text:
                 action = action + self.volume_down_action()
-            elif "quiet" in text:
+            elif "quiet" in text or 'quietness' in text:
                 action = action + self.volume_quiet()
-            elif "loud" in text:
+            elif "loud" in text or 'loudness' in text:
                 action = action + self.volume_loud()
             elif "normal" in text:
                 action = action + self.volume_normal()
             elif "unmute" in text:
                 action = action + self.volume_unmute()
-            elif "mute" in text:
+            elif "mute" in text or 'zero' in text:
                 action = action + self.volume_mute()
 
         return action
