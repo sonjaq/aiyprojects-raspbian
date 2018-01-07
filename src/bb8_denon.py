@@ -36,6 +36,7 @@ from denon.connection import DenonConnection
 from denon.trigger_map import TriggerMap
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
+from roku import Roku
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,7 +62,7 @@ def say_ip(status_ui):
     aiy.audio.say('%s' % ip_address.decode('utf-8'))
 
 
-def process_event(assistant, event, denon, trigger_map):
+def process_event(assistant, event, denon, trigger_map, roku):
     status_ui = aiy.voicehat.get_status_ui()
     # status_ui.set_trigger_sound_wave('~/trigger_sound.wav')
     if event.type == EventType.ON_START_FINISHED:
@@ -75,6 +76,11 @@ def process_event(assistant, event, denon, trigger_map):
         text = event.args['text'].lower()
         logging.info("Text: " + text)
         words = text.split()
+
+        if text == "tv power toggle":
+            assistant.stop_conversation()
+            roku.power()
+
         if trigger_map.receiver_triggered(words, text):
             assistant.stop_conversation()
             sent_command = denon.process_command_string(words, text)
@@ -88,7 +94,6 @@ def process_event(assistant, event, denon, trigger_map):
         elif text == 'ip address':
             assistant.stop_conversation()
             say_ip()
-        # elif "xbox" or "apple" or "audio" or "video" or "music" or "stereo" or "dolby" or "dts" or "volume" or "tv":
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
@@ -105,10 +110,11 @@ def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
     trigger_map = TriggerMap()
     denon = DenonConnection("192.168.1.137", "23", trigger_map)
+    roku = Roku.discover(timeout=5)[0]
     with Assistant(credentials) as assistant:
 
         for event in assistant.start():
-            process_event(assistant, event, denon, trigger_map)
+            process_event(assistant, event, denon, trigger_map, roku)
 
 
 if __name__ == '__main__':
