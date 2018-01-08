@@ -79,8 +79,11 @@ def process_event(assistant, event, denon, trigger_map, roku):
 
         if text == "tv power toggle":
             assistant.stop_conversation()
-            roku.power()
-
+            try:
+                roku.power()
+            except:
+                pass
+            
         if trigger_map.receiver_triggered(words, text):
             assistant.stop_conversation()
             sent_command = denon.process_command_string(words, text)
