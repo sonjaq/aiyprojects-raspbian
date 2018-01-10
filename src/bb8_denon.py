@@ -43,7 +43,7 @@ from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 from roku import Roku
 
-import xbox
+import xbox.xbox as xbox
 import xml.etree.ElementTree as ET
 
 logging.basicConfig(
