@@ -35,15 +35,15 @@ import aiy.voicehat
 
 import device_details
 
-from denon.connection import DenonConnection
-from denon.trigger_map import TriggerMap
+from denon import DenonConnection
+from denon import TriggerMap
 from denon import triggers, actions
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 from roku import Roku
 
 import xbox
-from xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET
 
 logging.basicConfig(
     level=logging.INFO,
@@ -105,8 +105,8 @@ def process_event(assistant, event, denon, trigger_map, roku):
             assistant.stop_conversation()
             try:
                 if not tv_power_status: roku.power()
-                receiver_roku_input = list(itertools.filterfalse(lambda x: x.name != "Receiver", roku.apps).pop()
-                roku.launch(receiver_roku_input))
+                receiver_roku_input = list(itertools.filterfalse(lambda x: x.name != "Receiver", roku.apps)).pop()
+                roku.launch(receiver_roku_input)
                 xbox.wake(device_details.xbox_ip_address(), device_details.xbox_live_device_id())
                 denon.send(actions.xbox_game())
             except:
