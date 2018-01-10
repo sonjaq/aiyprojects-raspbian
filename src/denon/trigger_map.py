@@ -1,7 +1,7 @@
 import logging
 
-import triggers
-import actions
+import denon.triggers as triggers
+import denon.actions as actions
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,7 +41,7 @@ class TriggerMap(object):
 
     def receiver_triggered(self, words, text):
         matched = []
-        for trigger in self.receiver_recognition():
+        for trigger in triggers.receiver_recognition():
             if trigger in words or trigger in text:
                 matched.append(trigger)
 

@@ -35,9 +35,10 @@ import aiy.voicehat
 
 import device_details
 
-from denon import DenonConnection
-from denon import TriggerMap
-from denon import triggers, actions
+from denon.connection import DenonConnection
+from denon.trigger_map import TriggerMap
+import denon.triggers as triggers
+import denon.actions as actions
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 from roku import Roku
@@ -90,7 +91,7 @@ def process_event(assistant, event, denon, trigger_map, roku):
             assistant.stop_conversation()
             try:
                 if tv_power_status: roku.power()
-                denon.send(actions.receiver_standby)
+                denon.send(actions.receiver_standby())
                 return
             except:
                 pass
