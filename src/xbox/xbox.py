@@ -1,4 +1,12 @@
-import sys, socket, select, time
+import socket
+import time
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
+)
+
 """
 Borrowed, modified from https://github.com/Schamper/xbox-remote-power
 """
@@ -14,6 +22,7 @@ def wake(ip_address, live_device_id):
     power_header = b'\xdd\x02\x00' + chr(len(power_payload)).encode() + b'\x00\x00'
     power_packet = power_header + power_payload
     for i in range(0,5):
+        logging.info("PINGING XBOX")
         s.send(power_packet)
         time.sleep(1)
 

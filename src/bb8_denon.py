@@ -96,7 +96,7 @@ def process_event(assistant, event, denon, trigger_map, roku):
             except:
                 pass
 
-        if text == "tv power toggle":
+        elif text == "tv power toggle":
             assistant.stop_conversation()
             try:
                 roku.power()
@@ -104,14 +104,15 @@ def process_event(assistant, event, denon, trigger_map, roku):
                 pass
         elif text == "xbox time":
             assistant.stop_conversation()
-            try:
-                if not tv_power_status: roku.power()
-                receiver_roku_input = list(itertools.filterfalse(lambda x: x.name != "Receiver", roku.apps)).pop()
-                roku.launch(receiver_roku_input)
-                xbox.wake(device_details.xbox_ip_address(), device_details.xbox_live_device_id())
-                denon.send(actions.xbox_game())
-            except:
-                pass
+            # try:
+            if not tv_power_status: roku.power()
+            receiver_roku_input = list(itertools.filterfalse(lambda x: x.name != "Receiver", roku.apps)).pop()
+            roku.launch(receiver_roku_input)
+            denon.send(actions.xbox_game())
+            xbox.wake(device_details.xbox_ip_address(), device_details.xbox_live_device_id())
+            logging.info("XBOX TIME COMPLETE?")
+        # except:
+            #     pass
         elif text == "music time":
             assistant.stop_conversation()
             try:
@@ -127,8 +128,7 @@ def process_event(assistant, event, denon, trigger_map, roku):
                 roku.home()
             except:
                 pass
-
-        if trigger_map.receiver_triggered(words, text):
+        elif trigger_map.receiver_triggered(words, text):
             assistant.stop_conversation()
             sent_command = denon.process_command_string(words, text)
             logging.info(sent_command)
