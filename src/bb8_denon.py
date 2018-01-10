@@ -27,16 +27,23 @@ It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 import logging
 import subprocess
 import sys
+import itertools
 
 import aiy.audio
 import aiy.assistant.auth_helpers
 import aiy.voicehat
 
+import device_details
+
 from denon.connection import DenonConnection
 from denon.trigger_map import TriggerMap
+from denon import triggers, actions
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 from roku import Roku
+
+import xbox
+from xml.etree.ElementTree as ET
 
 logging.basicConfig(
     level=logging.INFO,
@@ -77,13 +84,49 @@ def process_event(assistant, event, denon, trigger_map, roku):
         logging.info("Text: " + text)
         words = text.split()
 
+        tv_info = ET.fromstring(roku._get("/query/device-info").decode())
+        tv_power_status = tv_info.findtext("power-mode") == "PowerOn"
+        if text == "shut it all down":
+            assistant.stop_conversation()
+            try:
+                if tv_power_status: roku.power()
+                denon.send(actions.receiver_standby)
+                return
+            except:
+                pass
+
         if text == "tv power toggle":
             assistant.stop_conversation()
             try:
                 roku.power()
             except:
                 pass
-            
+        elif text == "xbox time":
+            assistant.stop_conversation()
+            try:
+                if not tv_power_status: roku.power()
+                receiver_roku_input = list(itertools.filterfalse(lambda x: x.name != "Receiver", roku.apps).pop()
+                roku.launch(receiver_roku_input))
+                xbox.wake(device_details.xbox_ip_address(), device_details.xbox_live_device_id())
+                denon.send(actions.xbox_game())
+            except:
+                pass
+        elif text == "music time":
+            assistant.stop_conversation()
+            try:
+                denon.send(actions.apple_tv_stereo())
+                if not tv_power_status: roku.power()
+            except:
+                pass
+        elif text == "roku tv time":
+            assistant.stop_conversation()
+            try:
+                denon.send(actions.roku())
+                roku.power()
+                roku.home()
+            except:
+                pass
+
         if trigger_map.receiver_triggered(words, text):
             assistant.stop_conversation()
             sent_command = denon.process_command_string(words, text)
@@ -112,7 +155,7 @@ def process_event(assistant, event, denon, trigger_map, roku):
 def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
     trigger_map = TriggerMap()
-    denon = DenonConnection("192.168.1.137", "23", trigger_map)
+    denon = DenonConnection(device_details.denon_ip_address(), "23", trigger_map)
     roku = Roku.discover(timeout=5)[0]
     with Assistant(credentials) as assistant:
 
