@@ -13,15 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Run a recognizer using the Google Assistant Library.
+"""
+Adapted from the demos within  the Google Assistant Library that shipped
+with the Google AIY Audio kit.
 
-The Google Assistant Library has direct access to the audio API, so this Python
-code doesn't need to record audio. Hot word detection "OK, Google" is supported.
+Controls exactly one home theater configuration that I am aware of, which
+consists of the following:
 
-The Google Assistant Library can be installed with:
-    env/bin/pip install google-assistant-library==0.0.2
+* TPLink HS100 smart plug (backlight, subwoofer)
+* Denon 7.2 receiver AVR-X1400H
+* TCL Roku TV (55P605)
+* Xbox One
 
-It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
+Requires a credentials file named `device_details.py` as a sibling to this.
+Google assistant credentials are required, as well.
+
+Crammed into a Star Wars BB8 toy, this runs on a Raspberry Pi 3, with the
+aforementioned Google AIY kit.
+
+author: Sonja Leaf <avleaf@gmail.com>
 """
 
 import logging
@@ -46,37 +56,64 @@ from roku import Roku
 import xbox.xbox as xbox
 import xml.etree.ElementTree as ET
 
+import pyHS100
+
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
 )
 
 
-def power_off_pi(status_ui):
-    status_ui.play_random_bb8_sound()
-    aiy.audio.say('Good bye!')
-    subprocess.call('sudo shutdown now', shell=True)
+global plug, denon, roku, trigger_map
+
+def device_setup():
+    global plug, denon, roku, trigger_map
+    trigger_map = TriggerMap()
+    denon = DenonConnection(device_details.denon_ip_address(), "23", trigger_map)
+    roku = Roku.discover(timeout=5)[0]
+    plug_ip = list(pyHS100.Discover().discover())[0]
+    plug = pyHS100.SmartPlug(plug_ip)
+
+def plug_power_off():
+    global plug
+    if plug.is_on:
+        plug.power_off()
+
+def plug_power_on():
+    global plug
+    if plug.is_off:
+        plug.power_on()
+
+def roku_off():
+    global roku
+    if roku_is_on():
+        roku.power()
+
+def roku_on():
+    global roku
+    if not roku_is_on():
+        roku.power()
+
+def roku_is_on():
+    global roku
+    tv_info = ET.fromstring(roku._get("/query/device-info").decode())
+    return tv_info.findtext("power-mode") == "PowerOn"
+
+def roku_switch_to_named_input(target):
+    global roku
+    receiver_roku_input = list(itertools.filterfalse(lambda x: x.name != target, roku.apps)).pop()
+    roku.launch(receiver_roku_input)
 
 
-def reboot_pi(status_ui):
-    status_ui.play_random_bb8_sound()
-    aiy.audio.say('See you in a bit!')
-    subprocess.call('sudo reboot', shell=True)
-
-
-def say_ip(status_ui):
-    ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
-    status_ui.play_random_bb8_sound()
-    aiy.audio.say('%s' % ip_address.decode('utf-8'))
-
-
-def process_event(assistant, event, denon, trigger_map, roku):
+def process_event(assistant, event):
+    global denon, trigger_map, roku
     status_ui = aiy.voicehat.get_status_ui()
-    # status_ui.set_trigger_sound_wave('~/trigger_sound.wav')
+
     if event.type == EventType.ON_START_FINISHED:
         status_ui.status('ready')
         if sys.stdout.isatty():
             print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
+
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')
 
@@ -84,84 +121,74 @@ def process_event(assistant, event, denon, trigger_map, roku):
         text = event.args['text'].lower()
         logging.info("Text: " + text)
         words = text.split()
-
-        tv_info = ET.fromstring(roku._get("/query/device-info").decode())
-        tv_power_status = tv_info.findtext("power-mode") == "PowerOn"
-        if text == "shut it all down":
+        if text == "shut it all down" or text == "shut it down":
             assistant.stop_conversation()
             try:
-                if tv_power_status: roku.power()
+                roku_off()
+                plug_power_off()
                 denon.send(actions.receiver_standby())
                 return
             except:
+                logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
-
         elif text == "tv power toggle":
             assistant.stop_conversation()
             try:
                 roku.power()
             except:
+                logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
         elif text == "xbox time":
             assistant.stop_conversation()
             try:
-                if not tv_power_status: roku.power()
-                receiver_roku_input = list(itertools.filterfalse(lambda x: x.name != "Receiver", roku.apps)).pop()
-                roku.launch(receiver_roku_input)
+                plug_power_on()
+                roku_on()
+                roku_switch_to_named_input("Receiver")
                 denon.send(actions.xbox_game())
                 xbox.wake(device_details.xbox_ip_address(), device_details.xbox_live_device_id())
-                logging.info("XBOX TIME COMPLETE?")
+                logging.info("XBOX TIME COMPLETE")
             except:
+                logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
         elif text == "music time":
             assistant.stop_conversation()
             try:
+                plug_power_on()
                 denon.send(actions.apple_tv_stereo())
-                if not tv_power_status: roku.power()
+                roku_on()
             except:
+                logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
-        elif text == "roku tv time":
+        elif text == "roku YouTube time":
             assistant.stop_conversation()
             try:
+                plug_power_on()
                 denon.send(actions.roku_tv())
-                roku.power()
-                roku.home()
+                roku_power_on()
+                roku_switch_to_named_input("YouTube")
             except:
+                logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
         elif trigger_map.receiver_triggered(words, text):
             assistant.stop_conversation()
             sent_command = denon.process_command_string(words, text)
             logging.info(sent_command)
-        elif text == 'power off':
-            assistant.stop_conversation()
-            power_off_pi()
-        elif text == 'reboot':
-            assistant.stop_conversation()
-            reboot_pi()
-        elif text == 'ip address':
-            assistant.stop_conversation()
-            say_ip()
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
-
-
     elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
         status_ui.status('ready')
-
     elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
         sys.exit(1)
 
 
 def main():
+    device_setup()
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
-    trigger_map = TriggerMap()
-    denon = DenonConnection(device_details.denon_ip_address(), "23", trigger_map)
-    roku = Roku.discover(timeout=5)[0]
     with Assistant(credentials) as assistant:
 
         for event in assistant.start():
-            process_event(assistant, event, denon, trigger_map, roku)
+            process_event(assistant, event)
 
 
 if __name__ == '__main__':
