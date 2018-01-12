@@ -77,12 +77,12 @@ def device_setup():
 def plug_power_off():
     global plug
     if plug.is_on:
-        plug.power_off()
+        plug.turn_off()
 
 def plug_power_on():
     global plug
     if plug.is_off:
-        plug.power_on()
+        plug.turn_on()
 
 def roku_off():
     global roku
