@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-Adapted from the demos within  the Google Assistant Library that shipped
+Adapted from the demos within the Google Assistant Library that shipped
 with the Google AIY Audio kit.
 
 Controls exactly one home theater configuration that I am aware of, which
@@ -57,6 +57,7 @@ import xbox.xbox as xbox
 import xml.etree.ElementTree as ET
 
 import pyHS100
+import random
 
 logging.basicConfig(
     level=logging.INFO,
@@ -64,15 +65,59 @@ logging.basicConfig(
 )
 
 
-global plug, denon, roku, trigger_map
+global plug, denon, roku, trigger_map, lights
+lights = []
 
 def device_setup():
-    global plug, denon, roku, trigger_map
+    global plug, denon, roku, trigger_map, lights
     trigger_map = TriggerMap()
     denon = DenonConnection(device_details.denon_ip_address(), "23", trigger_map)
     roku = Roku.discover(timeout=5)[0]
-    plug_ip = list(pyHS100.Discover().discover())[0]
-    plug = pyHS100.SmartPlug(plug_ip)
+    discovery = pyHS100.Discover().discover()
+    for ip, obj in discovery.items():
+        if obj.__class__ == pyHS100.SmartPlug:
+            plug = obj
+        if obj.__class__ == pyHS100.SmartBulb:
+            lights.append(obj)
+
+
+def lights_on():
+    global lights
+    for light in lights:
+        light.turn_on()
+        light.hsv = (282, 50, 80)
+
+def lights_off():
+    global lights
+    for light in lights:
+        light.turn_off()
+
+def random_light_color():
+    global lights
+    random_color = random.choice(range(1,360))
+    for light in lights:
+        light.hsv = (random_color, 50, 80)
+
+def bold_light_color():
+    global lights
+    for light in lights:
+        hsv = list(light.hsv)
+        hsv[1] = 99
+        light.hsv = tuple(hsv)
+
+def bright_light_color():
+    global lights
+    for light in lights:
+        hsv = list(light.hsv)
+        hsv[2] = 99
+        light.hsv = tuple(hsv)
+
+def low_light_color():
+    global lights
+    for light in lights:
+        hsv = list(light.hsv)
+        hsv[2] = 5
+        light.hsv = tuple(hsv)
 
 def plug_power_off():
     global plug
@@ -127,10 +172,29 @@ def process_event(assistant, event):
                 roku_off()
                 plug_power_off()
                 denon.send(actions.receiver_standby())
+                lights_off()
                 return
             except:
                 logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
+        elif text == "lights off" or text == "bedtime" or text == "night night":
+            assistant.stop_conversation()
+            lights_off()
+        elif text == "lights on" or text == "then there was light":
+            assistant.stop_conversation()
+            lights_on()
+        elif text == "old lights" or text == "bold lights" or text == "loud lights":
+            assistant.stop_conversation()
+            bold_light_color()
+        elif text == "low lights" or text == "low light" or text == "lowlights" or text == "darkness please":
+            assistant.stop_conversation()
+            low_light_color()
+        elif text == "hi lights" or text == "bright lights" or text == "highlights":
+            assistant.stop_conversation()
+            bright_light_color()
+        elif text == "random color":
+            assistant.stop_conversation()
+            random_light_color()
         elif text == "tv power toggle":
             assistant.stop_conversation()
             try:
@@ -142,6 +206,7 @@ def process_event(assistant, event):
             assistant.stop_conversation()
             try:
                 plug_power_on()
+                lights_on()
                 roku_on()
                 roku_switch_to_named_input("Receiver")
                 denon.send(actions.xbox_game())
