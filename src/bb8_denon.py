@@ -58,6 +58,7 @@ import xml.etree.ElementTree as ET
 
 import pyHS100
 import random
+import subprocess
 
 logging.basicConfig(
     level=logging.INFO,
@@ -92,11 +93,28 @@ def lights_off():
     for light in lights:
         light.turn_off()
 
+def lights_erica():
+    global lights
+    for light in lights:
+        state = light.get_light_state()
+        state["hue"] = 348
+        state["saturation"] = 80
+        state["brightness"] = 255
+        light.set_light_state(state)
+
 def random_light_color():
     global lights
     random_color = random.choice(range(1,360))
+    random_saturation = random.choice(range(1,100))
+    random_brightness = random.choice(range(20,90))
     for light in lights:
-        light.hsv = (random_color, 50, 80)
+        state = light.get_light_state()
+        state["hue"] = random_color
+        state["saturation"] = random_saturation
+        state["brightness"] = random_brightness
+        state["transition_period"] = 3000
+        light.set_light_state(state)
+
 
 def bold_light_color():
     global lights
@@ -150,8 +168,9 @@ def roku_switch_to_named_input(target):
     roku.launch(receiver_roku_input)
 
 
+light_process = None
 def process_event(assistant, event):
-    global denon, trigger_map, roku
+    global denon, trigger_map, roku, light_process
     status_ui = aiy.voicehat.get_status_ui()
 
     if event.type == EventType.ON_START_FINISHED:
@@ -177,6 +196,17 @@ def process_event(assistant, event):
             except:
                 logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
+        elif text == "erica time":
+           assistant.stop_conversation()
+           lights_erica()
+        elif text == "disco lights" or text == "rotating lights" or text == "disco time":
+            if light_process == None:
+                light_process = subprocess.Popen('./lights.py')
+                logging.info('DISCO LIGHTS STARTED')
+            else:
+                light_process.kill()
+                logging.info('NO MO DISCO')
+                light_process = None
         elif text == "lights off" or text == "bedtime" or text == "night night":
             assistant.stop_conversation()
             lights_off()
@@ -192,7 +222,7 @@ def process_event(assistant, event):
         elif text == "hi lights" or text == "bright lights" or text == "highlights":
             assistant.stop_conversation()
             bright_light_color()
-        elif text == "random color":
+        elif text == "random color" or text == "mix it up" or text == "erica is the best":
             assistant.stop_conversation()
             random_light_color()
         elif text == "tv power toggle":
