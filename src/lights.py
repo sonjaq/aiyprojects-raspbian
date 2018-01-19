@@ -5,26 +5,30 @@ import pyHS100
 import asyncio
 import random
 from time import sleep
+from multiprocess.connection import Listener
 
 lights = []
-MAX_BRIGHTNESS = 60
-MIN_BRIGHTNESS = 0
+MAX_BRIGHTNESS = 40
+MIN_BRIGHTNESS = 30
 HUE_INTERVAL = 33 
 SATURATION_INTERVAL = 10
 MIN_SATURATION = 30
 MAX_SATURATION = 100
-TRANSITION_MS = 7000
+TRANSITION_MS = 1000
 state = None
+listener = None
 
 def setup():
+    listener = Listener( ('localhost',6060), authkey=b'secret')
+    listener.accept()
     devices = pyHS100.Discover().discover()
     for ip, obj in devices.items():
         if obj.__class__ == pyHS100.SmartBulb:
             lights.append(obj)
     
-def change_light_color(light, hue=None, saturation=None, brightness=None, transition_period=None):
+def change_light_color(light, refresh_state=False, hue=None, saturation=None, brightness=None, transition_period=None):
     global state
-    if not state or state == None: state = light.get_light_state()
+    if not state or state == None or refresh_state == True: state = light.get_light_state()
     if hue: state["hue"] = hue
     if saturation: state["saturation"] = saturation
     if brightness: state["brightness"] = brightness
@@ -38,11 +42,12 @@ def check_light_status_file():
         return file.read()
     except FileNotFoundError:
         return ''
-
 def main(loop):
     setup()
     interval = 0
     while True:
+        data = conn.recv()
+            
         #status = check_light_status_file()
        # if status != '':
        #     values = status.split(',')
