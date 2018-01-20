@@ -58,7 +58,7 @@ import xml.etree.ElementTree as ET
 
 import pyHS100
 import random
-import subprocess
+from multiprocessing.connection import Client
 
 logging.basicConfig(
     level=logging.INFO,
@@ -66,15 +66,16 @@ logging.basicConfig(
 )
 
 
-global plug, denon, roku, trigger_map, lights
+global plug, denon, roku, trigger_map, lights, light_controller
 lights = []
 
 def device_setup():
-    global plug, denon, roku, trigger_map, lights
+    global plug, denon, roku, trigger_map, lights, light_controller
     trigger_map = TriggerMap()
     denon = DenonConnection(device_details.denon_ip_address(), "23", trigger_map)
     roku = Roku.discover(timeout=5)[0]
     discovery = pyHS100.Discover().discover()
+    light_controller = Client(('localhost', 6780), authkey=b'secret')
     for ip, obj in discovery.items():
         if obj.__class__ == pyHS100.SmartPlug:
             plug = obj
@@ -197,16 +198,11 @@ def process_event(assistant, event):
                 logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
         elif text == "erica time":
-           assistant.stop_conversation()
-           lights_erica()
+            assistant.stop_conversation()
+            lights_erica()
         elif text == "disco lights" or text == "rotating lights" or text == "disco time":
-            if light_process == None:
-                light_process = subprocess.Popen('./lights.py')
-                logging.info('DISCO LIGHTS STARTED')
-            else:
-                light_process.kill()
-                logging.info('NO MO DISCO')
-                light_process = None
+            assistant.stop_conversation()
+            if light_controller: light_controller.send({"transition_period": 250})
         elif text == "lights off" or text == "bedtime" or text == "night night":
             assistant.stop_conversation()
             lights_off()
