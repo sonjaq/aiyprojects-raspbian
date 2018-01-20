@@ -75,7 +75,7 @@ def device_setup():
     denon = DenonConnection(device_details.denon_ip_address(), "23", trigger_map)
     roku = Roku.discover(timeout=5)[0]
     discovery = pyHS100.Discover().discover()
-    light_controller = Client(('localhost', 6780), authkey=b'secret')
+    # light_controller = Client(('localhost', 6780), authkey=b'secret')
     for ip, obj in discovery.items():
         if obj.__class__ == pyHS100.SmartPlug:
             plug = obj
@@ -202,7 +202,12 @@ def process_event(assistant, event):
             lights_erica()
         elif text == "disco lights" or text == "rotating lights" or text == "disco time":
             assistant.stop_conversation()
-            if light_controller: light_controller.send({"transition_period": 250})
+            # if light_controller: light_controller.send({"transition_period": 250})
+            if light_controller == None:
+                light_controller = subprocess.Popen('./src/lights.py')
+            else:
+                light_controller.kill()
+                light_controller = None
         elif text == "lights off" or text == "bedtime" or text == "night night":
             assistant.stop_conversation()
             lights_off()
