@@ -24,6 +24,7 @@ state = None
 listener = None
 
 def setup():
+    global listener
     listener = Listener( ('localhost', 6780), authkey=b'secret')
     devices = pyHS100.Discover().discover()
     for ip, obj in devices.items():
@@ -33,7 +34,8 @@ def setup():
 def change_light_state(light, data, refresh_state=False):
     global state
     if FIXED or not ON:
-        return state = light.get_light_state()
+        state = light.get_light_state()
+        return state
     if not state or state == None or refresh_state == True:
         state = light.get_light_state()
 
