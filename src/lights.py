@@ -56,7 +56,17 @@ def prepare_light_data(data={}):
     prepped_data["ignore_default"] = "1"
     return prepped_data
 
-def main(loop):
+def loop(args=None, setup_lights):
+    if args:
+       MAX_BRIGHTNESS = args.get("MAX_BRIGHTNESS", MAX_BRIGHTNESS)
+       MIN_BRIGHTNESS = args.get("MIN_BRIGHTNESS", MIN_BRIGHTNESS)
+       HUE_INTERVAL = args.get("HUE_INTERVAL", HUE_INTERVAL)
+       SATURATION_INTERVAL = args.get("SATURATION_INTERVAL", SATURATION_INTERVAL)
+       MIN_SATURATION = args.get("MIN_SATURATION", MIN_SATURATION)
+       MAX_SATURATION = args.get("MAX_SATURATION", MAX_SATURATION)
+       TRANSITION_MS = args.get("TRANSITION_MS", TRANSITION_MS)
+       TRANSITION_DIVISOR = args.get("TRANSITION_DIVISOR", TRANSITION_DIVISOR)
+
     global ON
     ON = True
     setup()
@@ -70,13 +80,12 @@ def main(loop):
 
         if ON:
             transition_period = data.get('transition_period', TRANSITION_MS)
-            for light in lights:
+            for light in setup_lights:
                 change_light_state(light, data)
                 sleep(transition_period/TRANSITION_DIVISOR)
 
-    sys.exit(0)
 
 
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_forever(main(loop))
+# if __name__ == '__main__':
+#     loop = asyncio.get_event_loop()
+#     loop.run_forever(main(loop))

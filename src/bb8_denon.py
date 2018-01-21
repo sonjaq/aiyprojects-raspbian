@@ -170,6 +170,9 @@ def roku_switch_to_named_input(target):
 
 
 light_process = None
+
+import lights
+
 def process_event(assistant, event):
     global denon, trigger_map, roku, light_process
     status_ui = aiy.voicehat.get_status_ui()
@@ -181,6 +184,7 @@ def process_event(assistant, event):
 
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')
+        lights.blink()
 
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text'].lower()
@@ -204,7 +208,8 @@ def process_event(assistant, event):
             assistant.stop_conversation()
             # if light_controller: light_controller.send({"transition_period": 250})
             if light_controller == None:
-                light_controller = subprocess.Popen('./src/lights.py')
+                args = { "TRANSITION_MS":50, "TRANSITION_DIVISOR":500,"HUE_INTERVAL": 10, "SATURATION_INTERVAL": 10}
+                light_controller = subprocess.Popen(lights.loop(args))
             else:
                 light_controller.kill()
                 light_controller = None
