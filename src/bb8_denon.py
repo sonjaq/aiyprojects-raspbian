@@ -65,12 +65,12 @@ logging.basicConfig(
     format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
 )
 
-
-global plug, denon, roku, trigger_map, lights, light_controller
-lights = []
+global plug, denon, roku, trigger_map, setup_lights, light_controller
+setup_lights = []
+light_controller = None
 
 def device_setup():
-    global plug, denon, roku, trigger_map, lights, light_controller
+    global plug, denon, roku, trigger_map, setup_lights, light_controller
     trigger_map = TriggerMap()
     denon = DenonConnection(device_details.denon_ip_address(), "23", trigger_map)
     roku = Roku.discover(timeout=5)[0]
@@ -80,23 +80,23 @@ def device_setup():
         if obj.__class__ == pyHS100.SmartPlug:
             plug = obj
         if obj.__class__ == pyHS100.SmartBulb:
-            lights.append(obj)
+            setup_lights.append(obj)
 
 
 def lights_on():
-    global lights
-    for light in lights:
+    global setup_lights
+    for light in setup_lights:
         light.turn_on()
         light.hsv = (282, 50, 80)
 
 def lights_off():
-    global lights
-    for light in lights:
+    global setup_lights
+    for light in setup_lights:
         light.turn_off()
 
 def lights_erica():
-    global lights
-    for light in lights:
+    global setup_lights
+    for light in setup_lights:
         state = light.get_light_state()
         state["hue"] = 348
         state["saturation"] = 80
@@ -104,11 +104,11 @@ def lights_erica():
         light.set_light_state(state)
 
 def random_light_color():
-    global lights
+    global setup_lights
     random_color = random.choice(range(1,360))
     random_saturation = random.choice(range(1,100))
     random_brightness = random.choice(range(20,90))
-    for light in lights:
+    for light in setup_lights:
         state = light.get_light_state()
         state["hue"] = random_color
         state["saturation"] = random_saturation
@@ -118,22 +118,22 @@ def random_light_color():
 
 
 def bold_light_color():
-    global lights
-    for light in lights:
+    global setup_lights
+    for light in setup_lights:
         hsv = list(light.hsv)
         hsv[1] = 99
         light.hsv = tuple(hsv)
 
 def bright_light_color():
-    global lights
-    for light in lights:
+    global setup_lights
+    for light in setup_lights:
         hsv = list(light.hsv)
         hsv[2] = 99
         light.hsv = tuple(hsv)
 
 def low_light_color():
-    global lights
-    for light in lights:
+    global setup_lights
+    for light in setup_lights:
         hsv = list(light.hsv)
         hsv[2] = 5
         light.hsv = tuple(hsv)
@@ -184,7 +184,7 @@ def process_event(assistant, event):
 
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')
-        lights.blink()
+        #lights.blink()
 
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text'].lower()
@@ -204,15 +204,17 @@ def process_event(assistant, event):
         elif text == "erica time":
             assistant.stop_conversation()
             lights_erica()
-        elif text == "disco lights" or text == "rotating lights" or text == "disco time":
-            assistant.stop_conversation()
-            # if light_controller: light_controller.send({"transition_period": 250})
-            if light_controller == None:
-                args = { "TRANSITION_MS":50, "TRANSITION_DIVISOR":500,"HUE_INTERVAL": 10, "SATURATION_INTERVAL": 10}
-                light_controller = subprocess.Popen(lights.loop(args))
-            else:
-                light_controller.kill()
-                light_controller = None
+        # elif text == "disco lights" or text == "rotating lights" or text == "disco time":
+        #     assistant.stop_conversation()
+        #     global light_controller
+        #     if light_controller == None:
+        #         args = { "TRANSITION_MS":250, "TRANSITION_DIVISOR":500,"HUE_INTERVAL": 10, "SATURATION_INTERVAL": 10}
+        #         light_controller = subprocess.Popen(lights.loop(setup_lights, args))
+        #         logging.info("Starting disco time")
+        #     else:
+        #         light_controller.kill()
+        #         light_controller = None
+        #         logging.info("disco time killed")
         elif text == "lights off" or text == "bedtime" or text == "night night":
             assistant.stop_conversation()
             lights_off()

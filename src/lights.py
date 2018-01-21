@@ -10,12 +10,12 @@ from multiprocessing.connection import Listener
 lights = []
 MAX_BRIGHTNESS = os.getenv("MAX_BRIGHTNESS", 40)
 MIN_BRIGHTNESS = os.getenv("MIN_BRIGHTNESS", 30)
-HUE_INTERVAL = os.getenv("HUE_INTERVAL", 33)
+HUE_INTERVAL = os.getenv("HUE_INTERVAL", 30)
 SATURATION_INTERVAL = os.getenv("SATURATION_INTERVAL", 10)
-MIN_SATURATION = os.getenv("MIN_SATURATION", 30)
+MIN_SATURATION = os.getenv("MIN_SATURATION", 70)
 MAX_SATURATION = os.getenv("MAX_SATURATION", 100)
-TRANSITION_MS = os.getenv("TRANSITION_MS", 1000)
-TRANSITION_DIVISOR = os.getenv("TRANSITION_DIVISOR", 2500)
+TRANSITION_MS = os.getenv("TRANSITION_MS", 1633)
+TRANSITION_DIVISOR = os.getenv("TRANSITION_DIVISOR", 1000)
 
 ON=False
 FIXED=False
@@ -24,7 +24,6 @@ state = None
 listener = None
 
 def setup():
-    global listener
     # listener = Listener( ('localhost', 6780), authkey=b'secret')
     devices = pyHS100.Discover().discover()
     for ip, obj in devices.items():
@@ -50,13 +49,14 @@ def prepare_light_data(data={}):
     FIXED = data.get('fixed', FIXED)
     prepped_data = {}
     prepped_data["hue"] = data.get("hue", random.choice(range(0,360)))
-    prepped_data["saturation"] = data.get("saturation", random.choice(range(MIN_SATURATION,MAX_BRIGHTNESS)))
+    prepped_data["saturation"] = data.get("saturation", random.choice(range(MIN_SATURATION,MAX_SATURATION)))
     prepped_data["brightness"] = data.get("brightness", random.choice(range(MIN_BRIGHTNESS,MAX_BRIGHTNESS)))
     prepped_data["transition_period"] = data.get("transition_period", TRANSITION_MS)
     prepped_data["ignore_default"] = "1"
     return prepped_data
 
-def loop(args=None, setup_lights):
+def main(setup_lights=lights, args=None):
+    global MAX_BRIGHTNESS, MIN_BRIGHTNESS, HUE_INTERVAL, SATURATION_INTERVAL, MIN_SATURATION, MAX_SATURATION, TRANSITION_MS, TRANSITION_DIVISOR
     if args:
        MAX_BRIGHTNESS = args.get("MAX_BRIGHTNESS", MAX_BRIGHTNESS)
        MIN_BRIGHTNESS = args.get("MIN_BRIGHTNESS", MIN_BRIGHTNESS)
@@ -86,6 +86,9 @@ def loop(args=None, setup_lights):
 
 
 
-# if __name__ == '__main__':
-#     loop = asyncio.get_event_loop()
-#     loop.run_forever(main(loop))
+if __name__ == '__main__':
+    try:
+        setup()
+        main(lights)
+    except KeyboardInterrupt:
+        sys.exit(0)
