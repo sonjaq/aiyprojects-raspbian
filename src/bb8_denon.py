@@ -209,7 +209,7 @@ def process_event(assistant, event):
             if light_controller == None:
                 logging.info("Starting disco time")
                 subprocess.call(["sudo","service","lights","start"])
-                light_controller == 'is a thing'
+                light_controller = True
             else:
                 subprocess.call(["sudo","service","lights","stop"])
                 light_controller = None
