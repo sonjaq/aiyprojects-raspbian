@@ -109,14 +109,14 @@ def main(setup_lights=lights, args=None):
     start_time = time.time()
     frame_counter = 0
     while True:
-        if frame_counter % 5 == 0: logging.info("FPS:" + str(frame_counter / float(time.time() - start_time)))
+        #if frame_counter % 5 == 0: logging.info("FPS:" + str(frame_counter / float(time.time() - start_time)))
         # if conn.poll():
         #     data = prepare_light_data(conn.recv())
         #     print(data)
         # else:
         data = prepare_light_data()
 
-        transition_period = 66; data.get('transition_period', config["TRANSITION_MS"])
+        transition_period = data.get('transition_period', config["TRANSITION_MS"])
         if ON:
             for light in setup_lights:
                 change_light_state(light, data)
