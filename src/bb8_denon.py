@@ -284,6 +284,15 @@ def process_event(assistant, event):
     elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
         sys.exit(1)
 
+import signal
+
+def sigterm_handler(signal, frame):
+    # save the state here or do whatever you want
+    logging.info("Shutting down")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, sigterm_handler)
+
 
 def main():
     device_setup()
