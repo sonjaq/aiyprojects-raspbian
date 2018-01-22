@@ -174,7 +174,7 @@ light_process = None
 import lights
 
 def process_event(assistant, event):
-    global denon, trigger_map, roku, light_process
+    global denon, trigger_map, roku, light_process, light_controller
     status_ui = aiy.voicehat.get_status_ui()
 
     if event.type == EventType.ON_START_FINISHED:
@@ -192,6 +192,10 @@ def process_event(assistant, event):
         words = text.split()
         if text == "shut it all down" or text == "shut it down":
             assistant.stop_conversation()
+            if light_controller:
+                subprocess.call(["sudo","service","lights","stop"])
+                light_controller = None
+                logging.info("disco time killed")
             try:
                 roku_off()
                 plug_power_off()
@@ -206,6 +210,7 @@ def process_event(assistant, event):
             lights_erica()
         elif text == "disco lights" or text == "disco" or text == "discount tire" or text == "rotating lights" or text == "disco time":
             assistant.stop_conversation()
+            logging.info("Disco triggered")
             global light_controller
             if light_controller == None:
                 logging.info("Starting disco time")
