@@ -22,14 +22,29 @@ FIXED=False
 
 state = None
 listener = None
+config = {}
 
 def setup():
     # listener = Listener( ('localhost', 6780), authkey=b'secret')
+    rcfile = open(os.environ('HOME') + os.sep + '.lightsrc'
+    for line in rcfile.read().splitlines():
+        config.update({line.split('=')[0]: line.split('=')[1].split(',')})
+    if config.get('lights'):
+        for ip_address in config.get('lights'):
+            try:
+                lights.append(pyHS100.SmartBulb(ip_address))
+            except:
+                pass
+        return
+    
     devices = pyHS100.Discover().discover()
     for ip, obj in devices.items():
         if obj.__class__ == pyHS100.SmartBulb:
             lights.append(obj)
 
+def setup_params():
+    for key, value in config.items():
+       # 
 def change_light_state(light, data, refresh_state=False):
     global state, FIXED, ON
     if FIXED or not ON:
