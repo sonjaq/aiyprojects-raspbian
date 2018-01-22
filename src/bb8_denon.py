@@ -204,17 +204,16 @@ def process_event(assistant, event):
         elif text == "erica time":
             assistant.stop_conversation()
             lights_erica()
-        # elif text == "disco lights" or text == "rotating lights" or text == "disco time":
-        #     assistant.stop_conversation()
-        #     global light_controller
-        #     if light_controller == None:
-        #         args = { "TRANSITION_MS":250, "TRANSITION_DIVISOR":500,"HUE_INTERVAL": 10, "SATURATION_INTERVAL": 10}
-        #         light_controller = subprocess.Popen(lights.loop(setup_lights, args))
-        #         logging.info("Starting disco time")
-        #     else:
-        #         light_controller.kill()
-        #         light_controller = None
-        #         logging.info("disco time killed")
+        elif text == "disco lights" or text == "rotating lights" or text == "disco time":
+            global light_controller
+            if light_controller == None:
+                logging.info("Starting disco time")
+                subprocess.call(["sudo","service","lights","start"])
+                light_controller == 'is a thing'
+            else:
+                subprocess.call(["sudo","service","lights","stop"])
+                light_controller = None
+                logging.info("disco time killed")
         elif text == "lights off" or text == "bedtime" or text == "night night":
             assistant.stop_conversation()
             lights_off()
