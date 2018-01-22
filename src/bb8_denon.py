@@ -204,7 +204,8 @@ def process_event(assistant, event):
         elif text == "erica time":
             assistant.stop_conversation()
             lights_erica()
-        elif text == "disco lights" or text == "rotating lights" or text == "disco time":
+        elif text == "disco lights" or text == "discount tire" or text == "rotating lights" or text == "disco time":
+            assistant.stop_conversation()
             global light_controller
             if light_controller == None:
                 logging.info("Starting disco time")
