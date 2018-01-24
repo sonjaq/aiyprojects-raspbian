@@ -75,7 +75,22 @@ def change_light_state(light, data, refresh_state=False):
 
 def get_animated_states():
     global config
-    rainbow = list(range(0, 361, 30))
+    # rainbow = list(range(0, 361, 30))
+    rainbow = [
+        0,
+        30,
+        210,
+        60,
+        240,
+        90,
+        270,
+        120,
+        300,
+        150,
+        330,
+        180,
+        360
+    ]
     # random.shuffle(rainbow)
     luminescence = [
         config["MIN_BRIGHTNESS"],
