@@ -19,7 +19,7 @@ config = {
     "SATURATION_INTERVAL": int(os.getenv("SATURATION_INTERVAL", 10)),
     "MIN_SATURATION": int(os.getenv("MIN_SATURATION", 70)),
     "MAX_SATURATION": int(os.getenv("MAX_SATURATION", 100)),
-    "TRANSITION_MS": int(os.getenv("TRANSITION_MS", 250)),
+    "TRANSITION_MS": int(os.getenv("TRANSITION_MS", 1000)),
     "TRANSITION_DIVISOR": int(os.getenv("TRANSITION_DIVISOR", 1000))
 }
 
