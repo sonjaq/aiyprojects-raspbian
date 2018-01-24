@@ -78,6 +78,7 @@ def get_animated_states():
     # rainbow = list(range(0, 361, 30))
     rainbow = [
         0,
+        180,
         30,
         210,
         60,
@@ -88,8 +89,7 @@ def get_animated_states():
         300,
         150,
         330,
-        180,
-        360
+        # 360
     ]
     # random.shuffle(rainbow)
     luminescence = [
