@@ -13,18 +13,18 @@ import logging
 
 lights = []
 config = {
-    "MAX_BRIGHTNESS": os.getenv("MAX_BRIGHTNESS", 40),
-    "MIN_BRIGHTNESS": os.getenv("MIN_BRIGHTNESS", 30),
-    "HUE_INTERVAL": os.getenv("HUE_INTERVAL", 30),
-    "SATURATION_INTERVAL": os.getenv("SATURATION_INTERVAL", 10),
-    "MIN_SATURATION": os.getenv("MIN_SATURATION", 70),
-    "MAX_SATURATION": os.getenv("MAX_SATURATION", 100),
-    "TRANSITION_MS": os.getenv("TRANSITION_MS", 1633),
-    "TRANSITION_DIVISOR": os.getenv("TRANSITION_DIVISOR", 1000)
+    "MAX_BRIGHTNESS": int(os.getenv("MAX_BRIGHTNESS", 40)),
+    "MIN_BRIGHTNESS": int(os.getenv("MIN_BRIGHTNESS", 30)),
+    "HUE_INTERVAL": int(os.getenv("HUE_INTERVAL", 30)),
+    "SATURATION_INTERVAL": int(os.getenv("SATURATION_INTERVAL", 10)),
+    "MIN_SATURATION": int(os.getenv("MIN_SATURATION", 70)),
+    "MAX_SATURATION": int(os.getenv("MAX_SATURATION", 100)),
+    "TRANSITION_MS": int(os.getenv("TRANSITION_MS", 250)),
+    "TRANSITION_DIVISOR": int(os.getenv("TRANSITION_DIVISOR", 1000))
 }
 
-ON=False
-FIXED=False
+ON = False
+FIXED = False
 
 state = None
 listener = None
@@ -54,16 +54,17 @@ def setup():
         if obj.__class__ == pyHS100.SmartBulb:
             lights.append(obj)
 
-#def setup_params():
+# def setup_params():
 #    for key, value in config.items():
 #       #
+
 
 def change_light_state(light, data, refresh_state=False):
     global state, FIXED, ON
     if FIXED or not ON:
         state = light.get_light_state()
         return state
-    if not state or state == None or refresh_state == True:
+    if not state or state is None or refresh_state is True:
         state = light.get_light_state()
 
     for prop, value in data.items():
@@ -71,14 +72,55 @@ def change_light_state(light, data, refresh_state=False):
 
     light.set_light_state(state)
 
+
+def get_animated_states():
+    global config
+    rainbow = list(range(0, 361, 30))
+    # random.shuffle(rainbow)
+    luminescence = [
+        config["MIN_BRIGHTNESS"],
+        config["MAX_BRIGHTNESS"],
+        config["MIN_BRIGHTNESS"]
+    ]
+    intensity = list(
+        range(config["MIN_SATURATION"], config["MAX_SATURATION"], 2))
+    # intensity = intensity + list(
+    #   range(config["MAX_SATURATION"], config["MIN_SATURATION"], -2))
+
+    states = []
+    last_hue = None
+    for saturation in intensity:
+        for hue in rainbow:
+            # for brightness in luminescence:
+                if hue is not last_hue:
+                    last_hue = hue
+                    transition_period = int(config["TRANSITION_MS"]) * 3
+                else:
+                    transition_period = config["TRANSITION_MS"]
+            # for brightness in luminescence:
+                data = {
+                    'hue': hue,
+                    'brightness': 35,  # brightness,
+                    'saturation': saturation,
+                    'transition_period': transition_period,
+                    'ignore_default': 1
+                }
+                states.append(data)
+    return states
+
+
 def prepare_light_data(data={}):
     global ON, FIXED, config
     ON = data.get('power', ON)
     FIXED = data.get('fixed', FIXED)
     prepped_data = {}
-    prepped_data["hue"] = data.get("hue", random.choice(range(0,360)))
-    prepped_data["saturation"] = data.get("saturation", random.choice(range(config["MIN_SATURATION"],config["MAX_SATURATION"])))
-    prepped_data["brightness"] = data.get("brightness", random.choice(range(config["MIN_BRIGHTNESS"],config["MAX_BRIGHTNESS"])))
+    prepped_data["hue"] = data.get("hue", random.choice(range(0, 360)))
+    prepped_data["saturation"] = data.get(
+        "saturation",
+        random.choice(
+            range(config["MIN_SATURATION"], config["MAX_SATURATION"])
+        ))
+    prepped_data["brightness"] = data.get("brightness", random.choice(range(config["MIN_BRIGHTNESS"], config["MAX_BRIGHTNESS"])))
     prepped_data["transition_period"] = data.get("transition_period", config.get('TRANSITION_MS'))
     prepped_data["ignore_default"] = "1"
     return prepped_data
@@ -100,28 +142,29 @@ def main(setup_lights=lights, args=None):
     for setting, value in config.items():
         if args:
             if setting is not "lights" and args.get("{setting}"):
-                config["{setting}"] = args.get("{setting}",value)
+                config["{setting}"] = args.get("{setting}", value)
 
     ON = True
-
-
     # conn = listener.accept()
-    start_time = time.time()
+    # start_time = time.time()
     frame_counter = 0
     while True:
-        #if frame_counter % 5 == 0: logging.info("FPS:" + str(frame_counter / float(time.time() - start_time)))
+        # if frame_counter % 5 == 0:
+        #   logging.info(
+        #       "FPS:" + str(frame_counter / float(time.time() - start_time)))
         # if conn.poll():
         #     data = prepare_light_data(conn.recv())
         #     print(data)
         # else:
-        data = prepare_light_data()
+        # data = prepare_light_data()
 
-        transition_period = data.get('transition_period', config["TRANSITION_MS"])
         if ON:
-            for light in setup_lights:
-                change_light_state(light, data)
+            for state in get_animated_states():
+                transition_period = state.get('transition_period')
+                for light in setup_lights:
+                    change_light_state(light, state)
+                sleep(transition_period / config["TRANSITION_DIVISOR"])
         frame_counter += 1
-        sleep(transition_period / config["TRANSITION_DIVISOR"])
 
 
 if __name__ == '__main__':
