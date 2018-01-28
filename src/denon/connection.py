@@ -9,16 +9,18 @@ author: Sonja Leaf <avleaf@gmail.com>
 """
 class DenonConnection(object):
     """POSTS commands to Denon API server"""
-    def __init__(self, api_host, port, trigger_map):
+    def __init__(self, api_host, port, trigger_map=None):
         self._api_host = api_host
         self._port = port
         self._connection = None
         self.action_map = trigger_map
 
     def process_command_string(self, words, text):
-        command = self.action_map.mapped_trigger(words, text)
-        self.send(command)
-        return command
+        if trigger_map:
+            command = self.action_map.mapped_trigger(words, text)
+            self.send(command)
+            return command
+        return "NO TRIGGER MAP"
 
 
     def connector(self):

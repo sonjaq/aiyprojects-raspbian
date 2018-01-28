@@ -103,11 +103,12 @@ def lights_erica():
         state["brightness"] = 255
         light.set_light_state(state)
 
+
 def random_light_color():
     global setup_lights
-    random_color = random.choice(range(1,360))
-    random_saturation = random.choice(range(1,100))
-    random_brightness = random.choice(range(20,90))
+    random_color = random.choice(range(1, 360))
+    random_saturation = random.choice(range(1, 100))
+    random_brightness = random.choice(range(20, 90))
     for light in setup_lights:
         state = light.get_light_state()
         state["hue"] = random_color
