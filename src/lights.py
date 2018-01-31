@@ -173,6 +173,7 @@ def main(setup_lights=lights, args=None):
         if ON:
             for state in get_animated_states():
                 connection, address = serversocket.accept()
+                connection.settimeout(0.1)
                 buf = connection.recv(64)
                 if len(buf) > 0:
                     data = buf.decode()
