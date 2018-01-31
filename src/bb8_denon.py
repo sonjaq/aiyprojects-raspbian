@@ -58,7 +58,9 @@ import xml.etree.ElementTree as ET
 
 import pyHS100
 import random
-from multiprocessing.connection import Client
+
+from light_helper import send_light_command
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -221,6 +223,12 @@ def process_event(assistant, event):
                 subprocess.call(["sudo","service","lights","stop"])
                 light_controller = None
                 logging.info("disco time killed")
+        elif "brightness" in words or "saturation" in words or "speed" in words:
+            assistant.stop_conversation()
+            if light_controller:
+                command = text.replace(" ", ":").replace("%", "")
+                logging.info('Light Command: ' + command)
+                send_light_command(command)
         elif text == "lights off" or text == "bedtime" or text == "night night":
             assistant.stop_conversation()
             lights_off()

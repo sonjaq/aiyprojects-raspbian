@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
-import os, sys
+import os
+import sys
+import socket
 import pyHS100
-import asyncio
 import random
 import time
 from time import sleep
-from multiprocessing.connection import Listener
 import logging
-
 
 
 lights = []
@@ -135,8 +134,11 @@ def prepare_light_data(data={}):
         random.choice(
             range(config["MIN_SATURATION"], config["MAX_SATURATION"])
         ))
-    prepped_data["brightness"] = data.get("brightness", random.choice(range(config["MIN_BRIGHTNESS"], config["MAX_BRIGHTNESS"])))
-    prepped_data["transition_period"] = data.get("transition_period", config.get('TRANSITION_MS'))
+    prepped_data["brightness"] = data.get(
+        "brightness", random.choice(
+            range(config["MIN_BRIGHTNESS"], config["MAX_BRIGHTNESS"])))
+    prepped_data["transition_period"] = data.get(
+        "transition_period", config.get('TRANSITION_MS'))
     prepped_data["ignore_default"] = "1"
     return prepped_data
 
@@ -159,22 +161,26 @@ def main(setup_lights=lights, args=None):
             if setting is not "lights" and args.get("{setting}"):
                 config["{setting}"] = args.get("{setting}", value)
 
+    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serversocket.bind(('localhost', 7777))
+    serversocket.listen(5)  # become a server socket, maximum 5 connections
     ON = True
     # conn = listener.accept()
     # start_time = time.time()
     frame_counter = 0
     while True:
-        # if frame_counter % 5 == 0:
-        #   logging.info(
-        #       "FPS:" + str(frame_counter / float(time.time() - start_time)))
-        # if conn.poll():
-        #     data = prepare_light_data(conn.recv())
-        #     print(data)
-        # else:
-        # data = prepare_light_data()
 
         if ON:
             for state in get_animated_states():
+                connection, address = serversocket.accept()
+                buf = connection.recv(64)
+                if len(buf) > 0:
+                    data = buf.decode()
+                    logging.info(data)
+                    key, value = data.split(':')
+                    if key == "speed":
+                        key = "transition_period"
+                    state[key] = value
                 transition_period = state.get('transition_period')
                 for light in setup_lights:
                     change_light_state(light, state)
