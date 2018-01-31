@@ -69,39 +69,39 @@ def volume_unmute():
 
 
 def xbox_game():
-    return [b"SIGAME\r", b"MSGAME\r"]
+    return b"SIGAME\rMSGAME\r"
 
 
 def xbox_movie():
-    return [b"SIGAME\r", b"MSMOVIE\r"]
+    return b"SIGAME\rMSMOVIE\r"
 
 
 def xbox_movie_stereo():
-    return [b"SIGAME\r", b"MSSTEREO\r"]
+    return b"SIGAME\rMSSTEREO\r"
 
 
 def apple_tv_music():
-    return [b"SIMPLAY\r", b"MSMUSIC\r"]
+    return b"SIMPLAY\rMSMUSIC\r"
 
 
 def apple_tv_movie():
-    return [b"SIMPLAY\r", b"MSMOVIE\r"]
+    return b"SIMPLAY\rMSMOVIE\r"
 
 
 def apple_tv_stereo():
-    return [b"SIMPLAY\r", b"MSSTEREO\r"]
+    return b"SIMPLAY\rMSSTEREO\r"
 
 
 def bluetooth_music():
-    return [b"SIBT\r", b"MSMUSIC\r"]
+    return b"SIBT\rMSMUSIC\r"
 
 
 def bluetooth_movie():
-    return [b"SIBT\r", b"MSMOVIE\r"]
+    return b"SIBT\rMSMOVIE\r"
 
 
 def bluetooth_stereo():
-    return [b"SIBT\r", b"MSSTEREO\r"]
+    return b"SIBT\rMSSTEREO\r"
 
 
 def mode_music():
