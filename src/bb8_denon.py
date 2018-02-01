@@ -38,6 +38,7 @@ import logging
 import subprocess
 import sys
 import itertools
+import signal
 
 import aiy.audio
 import aiy.assistant.auth_helpers
@@ -71,10 +72,12 @@ global plug, denon, roku, trigger_map, setup_lights, light_controller
 setup_lights = []
 light_controller = None
 
+
 def device_setup():
     global plug, denon, roku, trigger_map, setup_lights, light_controller
     trigger_map = TriggerMap()
-    denon = DenonConnection(device_details.denon_ip_address(), "23", trigger_map)
+    denon = DenonConnection(
+        device_details.denon_ip_address(), "23", trigger_map)
     roku = Roku.discover(timeout=5)[0]
     discovery = pyHS100.Discover().discover()
     # light_controller = Client(('localhost', 6780), authkey=b'secret')
@@ -91,10 +94,12 @@ def lights_on():
         light.turn_on()
         light.hsv = (282, 50, 80)
 
+
 def lights_off():
     global setup_lights
     for light in setup_lights:
         light.turn_off()
+
 
 def lights_erica():
     global setup_lights
@@ -127,12 +132,14 @@ def bold_light_color():
         hsv[1] = 99
         light.hsv = tuple(hsv)
 
+
 def bright_light_color():
     global setup_lights
     for light in setup_lights:
         hsv = list(light.hsv)
         hsv[2] = 99
         light.hsv = tuple(hsv)
+
 
 def low_light_color():
     global setup_lights
@@ -141,43 +148,49 @@ def low_light_color():
         hsv[2] = 5
         light.hsv = tuple(hsv)
 
+
 def plug_power_off():
     global plug
     if plug.is_on:
         plug.turn_off()
+
 
 def plug_power_on():
     global plug
     if plug.is_off:
         plug.turn_on()
 
+
 def roku_off():
     global roku
     if roku_is_on():
         roku.power()
+
 
 def roku_on():
     global roku
     if not roku_is_on():
         roku.power()
 
+
 def roku_is_on():
     global roku
     tv_info = ET.fromstring(roku._get("/query/device-info").decode())
     return tv_info.findtext("power-mode") == "PowerOn"
 
+
 def roku_switch_to_named_input(target):
     global roku
-    receiver_roku_input = list(itertools.filterfalse(lambda x: x.name != target, roku.apps)).pop()
+    receiver_roku_input = list(
+        itertools.filterfalse(
+            lambda x: x.name != target,
+            roku.apps)
+        ).pop()
     roku.launch(receiver_roku_input)
 
 
-light_process = None
-
-import lights
-
 def process_event(assistant, event):
-    global denon, trigger_map, roku, light_process, light_controller
+    global denon, trigger_map, roku, light_controller
     status_ui = aiy.voicehat.get_status_ui()
 
     if event.type == EventType.ON_START_FINISHED:
@@ -187,7 +200,6 @@ def process_event(assistant, event):
 
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')
-        #lights.blink()
 
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text'].lower()
@@ -196,7 +208,7 @@ def process_event(assistant, event):
         if text == "shut it all down" or text == "shut it down":
             assistant.stop_conversation()
             if light_controller:
-                subprocess.call(["sudo","service","lights","stop"])
+                subprocess.call(["sudo", "service", "lights", "stop"])
                 light_controller = None
                 logging.info("disco time killed")
             try:
@@ -211,40 +223,57 @@ def process_event(assistant, event):
         elif text == "erica time":
             assistant.stop_conversation()
             lights_erica()
-        elif text == "disco lights" or text == "disco" or text == "discount tire" or text == "rotating lights" or text == "disco time":
+        elif text == "disco lights" \
+                or text == "disco" \
+                or text == "discount tire" \
+                or text == "rotating lights" \
+                or text == "disco time":
             assistant.stop_conversation()
             logging.info("Disco triggered")
-            global light_controller
-            if light_controller == None:
+            if light_controller is None:
                 logging.info("Starting disco time")
-                subprocess.call(["sudo","service","lights","start"])
+                subprocess.call(["sudo", "service", "lights", "start"])
                 light_controller = True
             else:
-                subprocess.call(["sudo","service","lights","stop"])
+                subprocess.call(["sudo", "service", "lights", "stop"])
                 light_controller = None
                 logging.info("disco time killed")
-        elif "brightness" in words or "saturation" in words or "speed" in words:
+        elif "brightness" in words \
+                or "saturation" in words \
+                or "speed" in words:
             assistant.stop_conversation()
             if light_controller:
                 command = text.replace(" ", ":").replace("%", "")
                 logging.info('Light Command: ' + command)
                 send_light_command(command)
-        elif text == "lights off" or text == "bedtime" or text == "night night":
+        elif text == "lights off" \
+                or text == "bedtime" \
+                or text == "night night":
             assistant.stop_conversation()
             lights_off()
-        elif text == "lights on" or text == "then there was light":
+        elif text == "lights on" \
+                or text == "then there was light":
             assistant.stop_conversation()
             lights_on()
-        elif text == "old lights" or text == "bold lights" or text == "loud lights":
+        elif text == "old lights" \
+                or text == "bold lights" \
+                or text == "loud lights":
             assistant.stop_conversation()
             bold_light_color()
-        elif text == "low lights" or text == "low light" or text == "lowlights" or text == "darkness please":
+        elif text == "low lights" \
+                or text == "low light" \
+                or text == "lowlights" \
+                or text == "darkness please":
             assistant.stop_conversation()
             low_light_color()
-        elif text == "hi lights" or text == "bright lights" or text == "highlights":
+        elif text == "hi lights" \
+                or text == "bright lights" \
+                or text == "highlights":
             assistant.stop_conversation()
             bright_light_color()
-        elif text == "random color" or text == "mix it up" or text == "erica is the best":
+        elif text == "random color" \
+                or text == "mix it up" \
+                or text == "erica is the best":
             assistant.stop_conversation()
             random_light_color()
         elif text == "tv power toggle":
@@ -262,7 +291,9 @@ def process_event(assistant, event):
                 roku_on()
                 roku_switch_to_named_input("Receiver")
                 denon.send(actions.xbox_game())
-                xbox.wake(device_details.xbox_ip_address(), device_details.xbox_live_device_id())
+                xbox.wake(
+                    device_details.xbox_ip_address(),
+                    device_details.xbox_live_device_id())
                 logging.info("XBOX TIME COMPLETE")
             except:
                 logging.info("Unexpected error:", sys.exc_info()[0])
@@ -281,7 +312,7 @@ def process_event(assistant, event):
             try:
                 plug_power_on()
                 denon.send(actions.roku_tv())
-                roku_power_on()
+                roku_on()
                 roku_switch_to_named_input("YouTube")
             except:
                 logging.info("Unexpected error:", sys.exc_info()[0])
@@ -295,10 +326,10 @@ def process_event(assistant, event):
         status_ui.status('thinking')
     elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
         status_ui.status('ready')
-    elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
+    elif event.type == EventType.ON_ASSISTANT_ERROR \
+            and event.args and event.args['is_fatal']:
         sys.exit(1)
 
-import signal
 
 def sigterm_handler(signal, frame):
     # save the state here or do whatever you want
