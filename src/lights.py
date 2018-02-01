@@ -75,7 +75,7 @@ def change_light_state(light, data, refresh_state=False):
 
 def get_animated_states():
     global config
-    rainbow = list(range(0, 361, 30))
+    rainbow = list(range(0, 361, 19))
     # rainbow = [
     #     0,
     #     180,
@@ -109,7 +109,7 @@ def get_animated_states():
             # for brightness in luminescence:
                 if hue is not last_hue:
                     last_hue = hue
-                    transition_period = int(config["TRANSITION_MS"]) * 3
+                    transition_period = int(config["TRANSITION_MS"])  
                 else:
                     transition_period = config["TRANSITION_MS"]
             # for brightness in luminescence:
@@ -174,10 +174,14 @@ def main(setup_lights=lights, args=None):
         # data = prepare_light_data()
 
         if ON:
-            for state in get_animated_states():
+            states = get_animated_states();
+            for state in states:
                 transition_period = state.get('transition_period')
+                current_state_index = states.index(state)
                 for light in setup_lights:
-                    change_light_state(light, state)
+                    light_state = states[current_state_index]
+                    light_state["transition_period"] = transition_period
+                    change_light_state(light, light_state)
                 sleep(transition_period / config["TRANSITION_DIVISOR"])
         frame_counter += 1
 
