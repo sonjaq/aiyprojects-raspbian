@@ -211,7 +211,6 @@ def process_event(assistant, event):
         elif text == "disco lights" or text == "disco" or text == "discount tire" or text == "rotating lights" or text == "disco time":
             assistant.stop_conversation()
             logging.info("Disco triggered")
-            global light_controller
             if light_controller == None:
                 logging.info("Starting disco time")
                 subprocess.call(["sudo","service","lights","start"])
