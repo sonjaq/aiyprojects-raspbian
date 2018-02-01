@@ -12,8 +12,8 @@ import logging
 
 lights = []
 config = {
-    "MAX_BRIGHTNESS": int(os.getenv("MAX_BRIGHTNESS", 40)),
-    "MIN_BRIGHTNESS": int(os.getenv("MIN_BRIGHTNESS", 30)),
+    "MAX_BRIGHTNESS": int(os.getenv("MAX_BRIGHTNESS", 50)),
+    "MIN_BRIGHTNESS": int(os.getenv("MIN_BRIGHTNESS", 40)),
     "HUE_INTERVAL": int(os.getenv("HUE_INTERVAL", 30)),
     "SATURATION_INTERVAL": int(os.getenv("SATURATION_INTERVAL", 10)),
     "MIN_SATURATION": int(os.getenv("MIN_SATURATION", 70)),
