@@ -179,9 +179,13 @@ def main(setup_lights=lights, args=None):
                     data = buf.decode()
                     logging.info(data)
                     key, value = data.split(':')
-                    if key == "speed":
-                        key = "transition_period"
-                    state[key] = value
+                    try:
+                        value = int(value)
+                        if key == "speed":
+                            key = "transition_period"
+                        state[key] = value
+                    except:
+                        pass
                 transition_period = state.get('transition_period')
                 for light in setup_lights:
                     change_light_state(light, state)
