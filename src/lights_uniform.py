@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# helpful information on color formulas located at 
-# https://www.ethangardner.com/articles/2009/03/15/a-math-based-approach-to-color-theory-using-hue-saturation-and-brightness-hsb/
+
 import os, sys
 import pyHS100
 import asyncio
@@ -20,9 +19,8 @@ config = {
     "SATURATION_INTERVAL": int(os.getenv("SATURATION_INTERVAL", 10)),
     "MIN_SATURATION": int(os.getenv("MIN_SATURATION", 70)),
     "MAX_SATURATION": int(os.getenv("MAX_SATURATION", 100)),
-    "TRANSITION_MS": int(os.getenv("TRANSITION_MS", 667)),
-    "TRANSITION_DIVISOR": int(os.getenv("TRANSITION_DIVISOR", 1000)),
-    "RAINBOW_INTERVAL": int(os.getenv("RAINBOW_INTERVAL", 12))
+    "TRANSITION_MS": int(os.getenv("TRANSITION_MS", 1000)),
+    "TRANSITION_DIVISOR": int(os.getenv("TRANSITION_DIVISOR", 1000))
 }
 
 ON = False
@@ -77,7 +75,7 @@ def change_light_state(light, data, refresh_state=False):
 
 def get_animated_states():
     global config
-    rainbow = list(range(0, 360, config["RAINBOW_INTERVAL"]))
+    rainbow = list(range(0, 361, 19))
     # rainbow = [
     #     0,
     #     180,
@@ -100,15 +98,14 @@ def get_animated_states():
         config["MIN_BRIGHTNESS"]
     ]
     intensity = list(
-        range(config["MIN_SATURATION"], config["MAX_SATURATION"], 5))
+        range(config["MIN_SATURATION"], config["MAX_SATURATION"], 2))
     # intensity = intensity + list(
     #   range(config["MAX_SATURATION"], config["MIN_SATURATION"], -2))
 
     states = []
     last_hue = None
-    for hue in rainbow:
-                saturation = random.choice(intensity)
-        # for saturation in intensity:
+    for saturation in intensity:
+        for hue in rainbow:
             # for brightness in luminescence:
                 if hue is not last_hue:
                     last_hue = hue
@@ -152,6 +149,7 @@ timestamp = None
 
 def main(setup_lights=lights, args=None):
     logging.info("Beginning setup")
+    setup()
     logging.info("Setup complete")
     global ON
     global config
@@ -182,15 +180,6 @@ def main(setup_lights=lights, args=None):
                 current_state_index = states.index(state)
                 for light in setup_lights:
                     light_state = states[current_state_index]
-                    tetradic_hues_modifiers = [0, 90, 180, 270] 
-                    complimentary_hues = [0, 180, 0, 180]
-                    split_comp_hues = [0, 150, 210, 0]
-                    triadic_hues = [0, 120, 240, 0]
-                    analagous_hues = [0, 30, 60, 90]
-                    hue_modifiers = analagous_hues
-                    li = setup_lights.index(light)
-                    #logging.info(li)
-                    light_state["hue"] = abs(int(light_state["hue"]) + hue_modifiers[li] - 360)
                     light_state["transition_period"] = transition_period
                     change_light_state(light, light_state)
                 sleep(transition_period / config["TRANSITION_DIVISOR"])
