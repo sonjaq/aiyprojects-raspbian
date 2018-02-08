@@ -20,9 +20,9 @@ config = {
     "SATURATION_INTERVAL": int(os.getenv("SATURATION_INTERVAL", 10)),
     "MIN_SATURATION": int(os.getenv("MIN_SATURATION", 70)),
     "MAX_SATURATION": int(os.getenv("MAX_SATURATION", 100)),
-    "TRANSITION_MS": int(os.getenv("TRANSITION_MS", 667)),
+    "TRANSITION_MS": int(os.getenv("TRANSITION_MS", 2500)),
     "TRANSITION_DIVISOR": int(os.getenv("TRANSITION_DIVISOR", 1000)),
-    "RAINBOW_INTERVAL": int(os.getenv("RAINBOW_INTERVAL", 12))
+    "RAINBOW_INTERVAL": int(os.getenv("RAINBOW_INTERVAL", 1))
 }
 
 ON = False
@@ -107,7 +107,7 @@ def get_animated_states():
     states = []
     last_hue = None
     for hue in rainbow:
-                saturation = random.choice(intensity)
+                saturation = 85 # random.choice(intensity)
         # for saturation in intensity:
             # for brightness in luminescence:
                 if hue is not last_hue:
@@ -120,8 +120,8 @@ def get_animated_states():
                     'hue': hue,
                     'brightness': 35,  # brightness,
                     'saturation': saturation,
-                    'transition_period': transition_period,
-                    'ignore_default': 1
+                    'transition_period': transition_period
+                    # 'ignore_default': 1
                 }
                 states.append(data)
     return states
@@ -161,6 +161,14 @@ def main(setup_lights=lights, args=None):
             if setting is not "lights" and args.get("{setting}"):
                 config["{setting}"] = args.get("{setting}", value)
 
+    tetradic_hues_modifiers = [0, 90, 180, 270] 
+    complimentary_hues = [0, 180, 0, 180]
+    split_comp_hues = [0, 150, 210, 0]
+    triadic_hues = [0, 120, 240, 0]
+    analagous_hues = [0, 30, 60, 90]
+    
+    hues_collection = [ complimentary_hues, split_comp_hues, triadic_hues, analagous_hues ]
+
     ON = True
     # conn = listener.accept()
     # start_time = time.time()
@@ -175,25 +183,26 @@ def main(setup_lights=lights, args=None):
         # else:
         # data = prepare_light_data()
 
+        
         if ON:
-            states = get_animated_states();
+            states = get_animated_states()
+            random.shuffle(states)
+            frame_delay = float(os.getenv("FRAMETIME", 3.0))
+            logging.info("Frame Delay: " + str(frame_delay))
+
             for state in states:
                 transition_period = state.get('transition_period')
                 current_state_index = states.index(state)
+                hue_modifiers = analagous_hues
                 for light in setup_lights:
                     light_state = states[current_state_index]
-                    tetradic_hues_modifiers = [0, 90, 180, 270] 
-                    complimentary_hues = [0, 180, 0, 180]
-                    split_comp_hues = [0, 150, 210, 0]
-                    triadic_hues = [0, 120, 240, 0]
-                    analagous_hues = [0, 30, 60, 90]
-                    hue_modifiers = analagous_hues
+
                     li = setup_lights.index(light)
                     #logging.info(li)
                     light_state["hue"] = abs(int(light_state["hue"]) + hue_modifiers[li] - 360)
                     light_state["transition_period"] = transition_period
                     change_light_state(light, light_state)
-                sleep(transition_period / config["TRANSITION_DIVISOR"])
+                sleep(frame_delay)
         frame_counter += 1
 
 
