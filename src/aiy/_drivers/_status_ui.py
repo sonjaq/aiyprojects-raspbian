@@ -36,6 +36,11 @@ class _StatusUi(object):
     def __init__(self):
         self._trigger_sound_wave = None
         self._wavs = None
+        self._error_wavs = glob.glob("/home/pi/new_sounds/error*.wav")
+        self._success_wavs = glob.glob("/home/pi/new_sounds/success*.wav")
+        self._listening_wavs = glob.glob("/home/pi/new_sounds/listening*.wav")
+        self._shutdown_wavs = glob.glob("/home/pi/new_sounds/shutdown*.wav")
+
         self._state_map = {
             "starting": aiy.voicehat.LED.PULSE_QUICK,
             "ready": aiy.voicehat.LED.BEACON_DARK,
@@ -60,6 +65,27 @@ class _StatusUi(object):
 
     def play_random_bb8_sound(self):
         wav = self.get_wav()
+        if wav is not None:
+            aiy.audio.play_wave(wav)
+
+    def error_sound(self):
+        wav = random.choice(self._error_wavs)
+        if wav is not None:
+            aiy.audio.play_wave(wav)
+
+    def success_sound(self):
+        wav = random.choice(self._success_wavs)
+        if wav is not None:
+            aiy.audio.play_wave(wav)
+
+
+    def listening_sound(self):
+        wav = random.choice(self._listening_wavs)
+        if wav is not None:
+            aiy.audio.play_wave(wav)
+
+    def shutdown_sound(self):
+        wav = random.choice(self._shutdown_wavs)
         if wav is not None:
             aiy.audio.play_wave(wav)
 
@@ -94,8 +120,10 @@ class _StatusUi(object):
                            status, ",".join(self._state_map.keys()))
             return False
         aiy.voicehat.get_led().set_state(self._state_map[status])
+        # if status == 'ready':
+        #     self.success_sound()
         if status == 'listening':
-            self.play_random_bb8_sound()
+            self.listening_sound()
             
 
         return True
