@@ -91,7 +91,7 @@ def lights_on():
 
 def lights_off():
     global setup_lights, light_controller
-    if light_controller is not None or subprocess.call(["sudo","service","is-active","lights"]) == 0:
+    if light_controller is not None or subprocess.call(["sudo","systemctl","is-active","lights"]) == 0:
         subprocess.call(["sudo","service","lights","stop"])
         light_controller = None
         logging.info("disco time killed")
@@ -197,7 +197,7 @@ def process_event(assistant, event):
         if text == "shut it all down" or text == "shut it down":
             assistant.stop_conversation()
             status_ui.shutdown_sound()
-            if light_controller:
+            if light_controller or subprocess.call(["sudo","systemctl","is-active","lights"]) == 0:
                 subprocess.call(["sudo","service","lights","stop"])
                 light_controller = None
                 logging.info("disco time killed")
@@ -229,7 +229,7 @@ def process_event(assistant, event):
                 subprocess.call(["sudo","service","lights","start"])
                 light_controller = True
             else:
-                if subprocess.call(["sudo","service","is-active","lights"]) == 0:
+                if subprocess.call(["sudo","systemctl","is-active","lights"]) == 0:
                     subprocess.call(["sudo","service","lights","stop"])
                 light_controller = None
                 logging.info("disco time killed")
