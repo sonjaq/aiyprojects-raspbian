@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,24 +12,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Camera inference face detection demo code.
+"""Camera object detection demo code.
 
-Runs continuous face detection on the VisionBonnet and prints the number of
-detected faces.
+Runs continuous object detection on the VisionBonnet and prints the object and
+probability for top three objects.
 
 Example:
-face_detection_camera.py --num_frames 10
+object_detection_camera.py --num_frames 10
 """
 import argparse
 
 from aiy.vision.inference import CameraInference
-from aiy.vision.models import face_detection
-from examples.vision.annotator import Annotator
+from aiy.vision.models import image_classification
 from picamera import PiCamera
 
 
 def main():
-    """Face detection camera inference example."""
+    """Object detection camera inference example."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--num_frames',
@@ -38,7 +37,24 @@ def main():
         dest='num_frames',
         default=-1,
         help='Sets the number of frames to run for, otherwise runs forever.')
+
+    parser.add_argument(
+        '--num_objects',
+        '-c',
+        type=int,
+        dest='num_objects',
+        default=3,
+        help='Sets the number of object interences to print.')
+
     args = parser.parse_args()
+
+    def print_classes(classes, object_count):
+        s = ''
+        for index, (obj, prob) in enumerate(classes):
+            if index > object_count - 1:
+                break
+            s += '%s=%1.2f\t|\t' % (obj, prob)
+        print('%s\r' % s)
 
     with PiCamera() as camera:
         # Forced sensor mode, 1640x1232, full FoV. See:
@@ -57,29 +73,12 @@ def main():
         camera.framerate = 30
         camera.start_preview()
 
-        # Annotator renders in software so use a smaller size and scale results
-        # for increased performace.
-        annotator = Annotator(camera, dimensions=(320, 240))
-        scale_x = 320 / 1640
-        scale_y = 240 / 1232
-
-        # Incoming boxes are of the form (x, y, width, height). Scale and
-        # transform to the form (x1, y1, x2, y2).
-        def transform(bounding_box):
-            x, y, width, height = bounding_box
-            return (scale_x * x, scale_y * y, scale_x * (x + width),
-                    scale_y * (y + height))
-
-        with CameraInference(face_detection.model()) as inference:
+        with CameraInference(image_classification.model()) as inference:
             for i, result in enumerate(inference.run()):
                 if i == args.num_frames:
                     break
-                faces = face_detection.get_faces(result)
-                annotator.clear()
-                for face in faces:
-                    annotator.bounding_box(transform(face.bounding_box), fill=0)
-                annotator.update()
-                print('Iteration #%d: num_faces=%d' % (i, len(faces)))
+                classes = image_classification.get_classes(result)
+                print_classes(classes, args.num_objects)
 
         camera.stop_preview()
 
