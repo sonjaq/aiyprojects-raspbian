@@ -90,7 +90,11 @@ def lights_on():
         light.hsv = (282, 50, 80)
 
 def lights_off():
-    global setup_lights
+    global setup_lights, light_controller
+    if light_controller is not None or subprocess.call(["sudo","service","is-active","lights"]) == 0:
+        subprocess.call(["sudo","service","lights","stop"])
+        light_controller = None
+        logging.info("disco time killed")
     for light in setup_lights:
         light.turn_off()
 
@@ -192,6 +196,7 @@ def process_event(assistant, event):
         words = text.split()
         if text == "shut it all down" or text == "shut it down":
             assistant.stop_conversation()
+            status_ui.shutdown_sound()
             if light_controller:
                 subprocess.call(["sudo","service","lights","stop"])
                 light_controller = None
@@ -205,6 +210,13 @@ def process_event(assistant, event):
             except:
                 logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
+        elif text == "leave the lights on":
+            assistant.stop_conversation()
+            status_ui.shutdown_sound()
+            roku_off()
+            plug_power_off()
+            denon.send(actions.receiver_standby())
+            return
         elif text == "erica time":
             assistant.stop_conversation()
             lights_erica()
@@ -216,7 +228,8 @@ def process_event(assistant, event):
                 subprocess.call(["sudo","service","lights","start"])
                 light_controller = True
             else:
-                subprocess.call(["sudo","service","lights","stop"])
+                if subprocess.call(["sudo","service","is-active","lights"]) == 0:
+                    subprocess.call(["sudo","service","lights","stop"])
                 light_controller = None
                 logging.info("disco time killed")
         elif text == "lights off" or text == "bedtime" or text == "night night":
@@ -246,6 +259,7 @@ def process_event(assistant, event):
                 pass
         elif text == "xbox time":
             assistant.stop_conversation()
+            status_ui.success_sound()
             try:
                 plug_power_on()
                 lights_on()
@@ -257,6 +271,7 @@ def process_event(assistant, event):
             except:
                 logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
+            return
         elif text == "music time":
             assistant.stop_conversation()
             try:
@@ -280,7 +295,11 @@ def process_event(assistant, event):
             assistant.stop_conversation()
             sent_command = denon.process_command_string(words, text)
             logging.info(sent_command)
-
+        else:
+            status_ui.error_sound()
+            return
+        status_ui.success_sound()
+        return
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
     elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
