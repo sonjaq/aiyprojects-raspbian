@@ -183,12 +183,12 @@ def process_event(assistant, event):
 
     if event.type == EventType.ON_START_FINISHED:
         status_ui.status('ready')
+        status_ui.success_sound()
         if sys.stdout.isatty():
             print('Say "OK, Google" then speak, or press Ctrl+C to quit...')
 
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')
-        #lights.blink()
 
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         text = event.args['text'].lower()
@@ -223,6 +223,7 @@ def process_event(assistant, event):
         elif text == "disco lights" or text == "disco" or text == "discount tire" or text == "rotating lights" or text == "disco time":
             assistant.stop_conversation()
             logging.info("Disco triggered")
+            status_ui.success_sound()
             if light_controller == None:
                 logging.info("Starting disco time")
                 subprocess.call(["sudo","service","lights","start"])
@@ -234,9 +235,11 @@ def process_event(assistant, event):
                 logging.info("disco time killed")
         elif text == "lights off" or text == "bedtime" or text == "night night":
             assistant.stop_conversation()
+            status_ui.shutdown_sound()
             lights_off()
         elif text == "lights on" or text == "then there was light":
             assistant.stop_conversation()
+            status_ui.success_sound()
             lights_on()
         elif text == "old lights" or text == "bold lights" or text == "loud lights":
             assistant.stop_conversation()
@@ -252,6 +255,7 @@ def process_event(assistant, event):
             random_light_color()
         elif text == "tv power toggle":
             assistant.stop_conversation()
+            status_ui.success_sound()
             try:
                 roku.power()
             except:
@@ -274,6 +278,7 @@ def process_event(assistant, event):
             return
         elif text == "music time":
             assistant.stop_conversation()
+            status_ui.success_sound()
             try:
                 plug_power_on()
                 denon.send(actions.apple_tv_stereo())
@@ -293,12 +298,12 @@ def process_event(assistant, event):
                 pass
         elif trigger_map.receiver_triggered(words, text):
             assistant.stop_conversation()
+            status_ui.success_sound()
             sent_command = denon.process_command_string(words, text)
             logging.info(sent_command)
         else:
             status_ui.error_sound()
             return
-        status_ui.success_sound()
         return
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
