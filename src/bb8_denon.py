@@ -21,6 +21,7 @@ Controls exactly one home theater configuration that I am aware of, which
 consists of the following:
 
 * TPLink HS100 smart plug (backlight, subwoofer)
+* TPLink Color smart bulbs
 * Denon 7.2 receiver AVR-X1400H
 * TCL Roku TV (55P605)
 * Xbox One
@@ -286,6 +287,17 @@ def process_event(assistant, event):
             except:
                 logging.info("Unexpected error:", sys.exc_info()[0])
                 pass
+        elif text == "star trek" or text == "the final frontier" or text == "star trek discovery":
+            assistant.stop_conversation()
+            status_ui.success_sound()
+            try:
+                plug_power_on()
+                denon.send(actions.roku_tv())
+                roku_power_on()
+                roku_switch_to_named_input("CBS All Access")
+            except:
+                logging.info("Unexpected error:", sys.exc_info()[0])
+                pass
         elif text == "roku YouTube time":
             assistant.stop_conversation()
             try:
@@ -311,6 +323,8 @@ def process_event(assistant, event):
         status_ui.status('ready')
     elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
         sys.exit(1)
+    elif event.type == EventType.ON_ASSISTANT_ERROR:
+        logging.info(event)
 
 import signal
 
