@@ -301,7 +301,7 @@ def process_event(assistant, event):
             status_ui.success_sound()
             sent_command = denon.process_command_string(words, text)
             logging.info(sent_command)
-        else:
+        elif text == '':
             status_ui.error_sound()
             return
         return
@@ -326,7 +326,6 @@ def main():
     device_setup()
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
     with Assistant(credentials) as assistant:
-
         for event in assistant.start():
             process_event(assistant, event)
 
