@@ -293,7 +293,7 @@ def process_event(assistant, event):
             try:
                 plug_power_on()
                 denon.send(actions.roku_tv())
-                roku_power_on()
+                roku_on()
                 roku_switch_to_named_input("CBS All Access")
             except:
                 logging.info("Unexpected error:", sys.exc_info()[0])
@@ -303,7 +303,7 @@ def process_event(assistant, event):
             try:
                 plug_power_on()
                 denon.send(actions.roku_tv())
-                roku_power_on()
+                roku_on()
                 roku_switch_to_named_input("YouTube")
             except:
                 logging.info("Unexpected error:", sys.exc_info()[0])
@@ -324,7 +324,10 @@ def process_event(assistant, event):
     elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
         sys.exit(1)
     elif event.type == EventType.ON_ASSISTANT_ERROR:
-        logging.info(event)
+        try:
+            logging.info(event.args)
+        except:
+            pass
 
 import signal
 
